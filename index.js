@@ -15,10 +15,6 @@ try {
   fs.mkdirSync(OUTPUT_PATH);
 }
 
-// TODO: see https://rasa.com/docs/core/domains/#images-and-buttons
-// TODO: talk to microservice and recieve generated intents
-// TODO: create error if rasa_core absent on local machine
-// TODO: fix assumption of explicit welcome intent
 try {
   const client = new SDKWrapper();
   const { messages, intents, entities } = await client.init();
@@ -26,18 +22,20 @@ try {
   // Define map of messages that follow from intents
   const intentMap = utils.createIntentMap(messages);
   const nodeCollector = utils.createNodeCollector(intentMap, getMessage);
+  // Create yaml-consumable object from intent map
   const templates = Array.from(intentMap).reduce(
     (acc, [messageId, intentIds]) => {
       const message = getMessage(messageId);
       const collectedMessages = nodeCollector(message.next_message_ids).map(
         getMessage
       );
+      // TODO: see https://rasa.com/docs/core/domains/#images-and-buttons
       return {
         ...acc,
         [messageId]: [message, ...collectedMessages].reduce(
-          (acc_, v) => ({
+          (acc_, m) => ({
             ...acc_,
-            [v.message_type]: v.payload[v.message_type]
+            [m.message_type]: m.payload[m.message_type]
           }),
           {}
         )
@@ -45,6 +43,7 @@ try {
     },
     {}
   );
+  // Write domain file (see https://rasa.com/docs/core/domains/#domain-format)
   await fs.promises.writeFile(
     `${OUTPUT_PATH}/domain.yml`,
     toYAML({
@@ -54,9 +53,19 @@ try {
       templates
     })
   );
-  // await trainDialogModel();
+  // TODO: Write stories (see https://rasa.com/docs/core/stories/#format)
+  await fs.promises.writeFile(
+    `${OUTPUT_PATH}/stories.md`,
+    toMd({
+      // ..
+    })
+  );
   console.log(chalk.bold('done'));
 } catch (err) {
   console.error(err.message);
   process.exit(1);
 }
+
+function messageReducer(acc, message) {}
+
+function toMd() {}

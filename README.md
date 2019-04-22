@@ -15,6 +15,6 @@ BOTMOCK_BOARD_ID="@BOARD-ID"
 BOTMOCK_TOKEN="@TOKEN-ID"
 ```
 
-- run `npm start` to produce `/output/domain.yml` and `/output/stories.md`
+- run `npm start` to produce `/output/domain.yml`
 
 - from the current directory, run `python -m rasa_core.train -d output/domain.yml -s output/stories.md -o models/dialogue`

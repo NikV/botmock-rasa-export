@@ -4,9 +4,8 @@ import { stringify as toYAML } from 'yaml';
 import chalk from 'chalk';
 import fs from 'fs';
 import SDKWrapper from './lib/SDKWrapper';
-// import { trainDialogModel } from './lib/nlp';
-// import { generateUtterances } from './lib/api';
 import { OUTPUT_PATH } from './constants';
+import { toMd } from './lib/nlp';
 
 try {
   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
@@ -29,16 +28,25 @@ try {
       const collectedMessages = nodeCollector(message.next_message_ids).map(
         getMessage
       );
-      // TODO: see https://rasa.com/docs/core/domains/#images-and-buttons
+      // Map our node types to those appropriate for Rasa yaml
       return {
         ...acc,
-        [messageId]: [message, ...collectedMessages].reduce(
-          (acc_, m) => ({
+        [messageId]: [message, ...collectedMessages].reduce((acc_, m) => {
+          let type, payload;
+          switch (m.message_type) {
+            case 'button':
+            case 'quick_replies':
+              type = 'buttons';
+              payload = m.payload[m.message_type].map(({ title, payload }) => ({
+                title,
+                payload
+              }));
+          }
+          return {
             ...acc_,
-            [m.message_type]: m.payload[m.message_type]
-          }),
-          {}
-        )
+            [type || m.message_type]: payload || m.payload[m.message_type]
+          };
+        }, {})
       };
     },
     {}
@@ -54,18 +62,9 @@ try {
     })
   );
   // TODO: Write stories (see https://rasa.com/docs/core/stories/#format)
-  await fs.promises.writeFile(
-    `${OUTPUT_PATH}/stories.md`,
-    toMd({
-      // ..
-    })
-  );
+  await fs.promises.writeFile(`${OUTPUT_PATH}/stories.md`, '');
   console.log(chalk.bold('done'));
 } catch (err) {
   console.error(err.message);
   process.exit(1);
 }
-
-function messageReducer(acc, message) {}
-
-function toMd() {}

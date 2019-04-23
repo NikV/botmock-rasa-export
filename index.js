@@ -2,10 +2,10 @@
 import * as utils from '@botmock-api/utils';
 import { stringify as toYAML } from 'yaml';
 import chalk from 'chalk';
+import uuid from 'uuid/v4';
 import fs from 'fs';
 import SDKWrapper from './lib/SDKWrapper';
 import { OUTPUT_PATH } from './constants';
-import { toMd } from './lib/nlp';
 
 try {
   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
@@ -14,26 +14,32 @@ try {
   fs.mkdirSync(OUTPUT_PATH);
 }
 
+// TODO: https://rasa.com/docs/core/api/slots_api/
 try {
   const client = new SDKWrapper();
   const { messages, intents, entities } = await client.init();
   const getMessage = id => messages.find(m => m.message_id === id);
-  // Define map of messages that follow from intents
+  // Define map of messages -> intents connected to them
   const intentMap = utils.createIntentMap(messages);
   const nodeCollector = utils.createNodeCollector(intentMap, getMessage);
-  // Create yaml-consumable object from intent map
+  // Create yaml-consumable object from the intent map
   const templates = Array.from(intentMap).reduce(
     (acc, [messageId, intentIds]) => {
       const message = getMessage(messageId);
       const collectedMessages = nodeCollector(message.next_message_ids).map(
         getMessage
       );
-      // Map our node types to those appropriate for Rasa yaml
+      // Map our node types to those appropriate for Rasa yaml; i.e. group
+      // certain types of ours to carry the same payload
       return {
         ...acc,
         [messageId]: [message, ...collectedMessages].reduce((acc_, m) => {
           let type, payload;
           switch (m.message_type) {
+            // TODO: ..
+            // case 'carousel':
+            // case 'image':
+            //   break;
             case 'button':
             case 'quick_replies':
               type = 'buttons';
@@ -61,8 +67,40 @@ try {
       templates
     })
   );
-  // TODO: Write stories (see https://rasa.com/docs/core/stories/#format)
-  await fs.promises.writeFile(`${OUTPUT_PATH}/stories.md`, '');
+  // Create stories for each combination of message -> intent connected to it
+  // (see https://rasa.com/docs/core/stories/#format)
+  const stories = Array.from(intentMap).reduce(
+    (acc, [messageId, connectedIntents]) => {
+      const message = getMessage(messageId);
+      return {
+        ...acc,
+        ...connectedIntents.reduce((acc_, intent) => {
+          const storyId = uuid();
+          const actions = nodeCollector(message.next_message_ids);
+          // const entities = {};
+          return {
+            ...acc_,
+            [`story_${storyId}`]: { intents: connectedIntents, actions }
+          };
+        }, {})
+      };
+    },
+    {}
+  );
+  // Write the stories markdown file from the stories object
+  await fs.promises.writeFile(
+    `${OUTPUT_PATH}/stories.md`,
+    Object.keys(stories)
+      .map(storyId => {
+        const intentsForStory = stories[storyId].intents.map(intent => {
+          return `* ${intent}\n${stories[storyId].actions.map(
+            a => `\t- ${a}`
+          )}\n`;
+        });
+        return `## ${storyId}\n${intentsForStory}`;
+      })
+      .join('\n')
+  );
   console.log(chalk.bold('done'));
 } catch (err) {
   console.error(err.message);

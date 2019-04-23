@@ -6,6 +6,7 @@ import uuid from 'uuid/v4';
 import fs from 'fs';
 import SDKWrapper from './lib/SDKWrapper';
 import { OUTPUT_PATH } from './constants';
+// import { generateUtterances } from './lib/api';
 
 try {
   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
@@ -36,10 +37,11 @@ try {
         [messageId]: [message, ...collectedMessages].reduce((acc_, m) => {
           let type, payload;
           switch (m.message_type) {
-            // TODO: ..
             // case 'carousel':
-            // case 'image':
-            //   break;
+            case 'image':
+              type = 'image';
+              payload = m.payload.image_url;
+              break;
             case 'button':
             case 'quick_replies':
               type = 'buttons';
@@ -47,6 +49,7 @@ try {
                 title,
                 payload
               }));
+              break;
           }
           return {
             ...acc_,
@@ -77,6 +80,7 @@ try {
         ...connectedIntents.reduce((acc_, intent) => {
           const storyId = uuid();
           const actions = nodeCollector(message.next_message_ids);
+          // TODO: ..
           // const entities = {};
           return {
             ...acc_,

@@ -1,4 +1,5 @@
-// const fs = require('fs')
+const fs = require('fs');
+const { join } = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
 
@@ -9,4 +10,8 @@ it('runs', async () => {
   expect(stderr).toContain('');
 });
 
-// it('generated non-empty /output', async () => {});
+it('generates non-empty /output', async () => {
+  await execP('npm start');
+  const contents = await fs.promises.readdir(join(process.cwd(), '/output'));
+  expect(contents).toHaveLength(2);
+});

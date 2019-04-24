@@ -35,11 +35,15 @@ try {
       const collectedMessages = nodeCollector(message.next_message_ids).map(
         getMessage
       );
+      let { nodeName } = message.payload;
+      if (Object.keys(acc).includes(nodeName)) {
+        nodeName = `${nodeName}-${messageId}`;
+      }
       // Map our node types to those appropriate for Rasa yaml; i.e. group
       // certain types of ours to carry the same payload
       return {
         ...acc,
-        [messageId]: [message, ...collectedMessages].reduce((acc_, m) => {
+        [nodeName]: [message, ...collectedMessages].reduce((acc_, m) => {
           let type, payload;
           switch (m.message_type) {
             // case 'carousel':

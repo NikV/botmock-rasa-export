@@ -8,18 +8,23 @@ import SDKWrapper from './lib/SDKWrapper';
 import { OUTPUT_PATH } from './constants';
 // import { generateUtterances } from './lib/api';
 
+const client = new SDKWrapper();
+const { projectName, messages, intents, entities } = await client.init();
+const getMessage = id => messages.find(m => m.message_id === id);
+
+const STORIES_PATH = `${OUTPUT_PATH}/${projectName}`;
+
 try {
   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
+  await fs.promises.access(STORIES_PATH, fs.constants.R_OK);
 } catch (_) {
-  // Create output directory if it doesn't exist
+  // Create output directories if inexistant
   fs.mkdirSync(OUTPUT_PATH);
+  fs.mkdirSync(STORIES_PATH);
 }
 
 // TODO: https://rasa.com/docs/core/api/slots_api/
 try {
-  const client = new SDKWrapper();
-  const { messages, intents, entities } = await client.init();
-  const getMessage = id => messages.find(m => m.message_id === id);
   // Define map of messages -> intents connected to them
   const intentMap = utils.createIntentMap(messages);
   const nodeCollector = utils.createNodeCollector(intentMap, getMessage);
@@ -80,8 +85,6 @@ try {
         ...connectedIntents.reduce((acc_, intent) => {
           const storyId = uuid();
           const actions = nodeCollector(message.next_message_ids);
-          // TODO: ..
-          // const entities = {};
           return {
             ...acc_,
             [`story_${storyId}`]: { intents: connectedIntents, actions }
@@ -92,8 +95,9 @@ try {
     {}
   );
   // Write the stories markdown file from the stories object
+  // TODO: heuristic for splitting files
   await fs.promises.writeFile(
-    `${OUTPUT_PATH}/stories.md`,
+    `${STORIES_PATH}/story.md`,
     Object.keys(stories)
       .map(storyId => {
         const intentsForStory = stories[storyId].intents.map(intent => {

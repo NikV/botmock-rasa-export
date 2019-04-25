@@ -83,29 +83,30 @@ ${toYAML({
   // Write story file (see https://rasa.com/docs/core/stories/#format)
   await fs.promises.writeFile(
     `${STORIES_PATH}/story.md`,
-    toMd({
-      name: projectName,
-      intents: Array.from(intentMap).reduce(
-        (acc, [messageId, intentIds]) => ({
-          ...acc,
-          ...intentIds.reduce((acc_, id) => {
-            const { name: intentName } = intents.find(i => i.id === id);
-            const message = getMessage(messageId);
-            return {
-              [intentName]: [
-                message,
-                ...nodeCollector(message.next_message_ids).map(getMessage)
-              ]
-                // TODO: rm this restriction
-                .filter(m => m.message_type === 'text')
-                .map(m => m.payload[m.message_type])
-                .map(str => str.replace(/\s/g, '_'))
-            };
-          }, {})
-        }),
-        {}
-      )
-    })
+    `<!-- generated ${new Date().toLocaleString()} -->
+${toMd({
+  name: projectName,
+  intents: Array.from(intentMap).reduce(
+    (acc, [messageId, intentIds]) => ({
+      ...acc,
+      ...intentIds.reduce((acc_, id) => {
+        const { name: intentName } = intents.find(i => i.id === id);
+        const message = getMessage(messageId);
+        return {
+          [intentName]: [
+            message,
+            ...nodeCollector(message.next_message_ids).map(getMessage)
+          ]
+            // TODO: rm this restriction
+            .filter(m => m.message_type === 'text')
+            .map(m => m.payload[m.message_type])
+            .map(str => str.replace(/\s/g, '_'))
+        };
+      }, {})
+    }),
+    {}
+  )
+})}`
   );
   console.log(chalk.bold('done'));
 } catch (err) {

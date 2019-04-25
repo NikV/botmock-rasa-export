@@ -2,11 +2,10 @@
 import * as utils from '@botmock-api/utils';
 import { stringify as toYAML } from 'yaml';
 import chalk from 'chalk';
-import uuid from 'uuid/v4';
 import fs from 'fs';
+import { toMd } from './lib/nlp';
 import SDKWrapper from './lib/SDKWrapper';
 import { OUTPUT_PATH } from './constants';
-// import { generateUtterances } from './lib/api';
 
 const client = new SDKWrapper();
 const { projectName, messages, intents, entities } = await client.init();
@@ -23,7 +22,8 @@ try {
   fs.mkdirSync(STORIES_PATH);
 }
 
-// TODO: https://rasa.com/docs/core/api/slots_api/
+// TODO: heuristic for markdown file splitting
+// TODO: config file for which utterances should be prefixed with slot_ / utter_ ?
 try {
   // Define map of messages -> intents connected to them
   const intentMap = utils.createIntentMap(messages);
@@ -79,39 +79,32 @@ try {
       templates
     })
   );
-  // Create stories for each combination of message -> intent connected to it
-  // (see https://rasa.com/docs/core/stories/#format)
-  const stories = Array.from(intentMap).reduce(
-    (acc, [messageId, connectedIntents]) => {
-      const message = getMessage(messageId);
-      return {
-        ...acc,
-        ...connectedIntents.reduce((acc_, intent) => {
-          const storyId = uuid();
-          const actions = nodeCollector(message.next_message_ids);
-          return {
-            ...acc_,
-            [`story_${storyId}`]: { intents: connectedIntents, actions }
-          };
-        }, {})
-      };
-    },
-    {}
-  );
-  // Write the stories markdown file from the stories object
-  // TODO: heuristic for splitting files
+  // Write story file (see https://rasa.com/docs/core/stories/#format)
   await fs.promises.writeFile(
     `${STORIES_PATH}/story.md`,
-    Object.keys(stories)
-      .map(storyId => {
-        const intentsForStory = stories[storyId].intents.map(intent => {
-          return `* ${intent}\n${stories[storyId].actions.map(
-            a => `\t- ${a}`
-          )}\n`;
-        });
-        return `## ${storyId}\n${intentsForStory}`;
-      })
-      .join('\n')
+    toMd({
+      name: projectName,
+      intents: Array.from(intentMap).reduce(
+        (acc, [messageId, intentIds]) => ({
+          ...acc,
+          ...intentIds.reduce((acc_, id) => {
+            const { name: intentName } = intents.find(i => i.id === id);
+            const message = getMessage(messageId);
+            return {
+              [intentName]: [
+                message,
+                ...nodeCollector(message.next_message_ids).map(getMessage)
+              ]
+                // TODO: rm this restriction
+                .filter(m => m.message_type === 'text')
+                .map(m => m.payload[m.message_type])
+                .map(str => str.replace(/\s/g, '_'))
+            };
+          }, {})
+        }),
+        {}
+      )
+    })
   );
   console.log(chalk.bold('done'));
 } catch (err) {

@@ -35,7 +35,10 @@ try {
       const collectedMessages = nodeCollector(message.next_message_ids).map(
         getMessage
       );
+      // Grab this message's response name; if this name has been seen already,
+      // append its id to it
       let { nodeName } = message.payload;
+      nodeName = nodeName.replace(/\s/g, '_').toLowerCase();
       if (Object.keys(acc).includes(nodeName)) {
         nodeName = `${nodeName}-${messageId}`;
       }
@@ -99,7 +102,7 @@ ${toMd({
           ]
             // TODO: rm this restriction
             .filter(m => m.message_type === 'text')
-            .map(m => m.payload[m.message_type])
+            .map(m => m.payload[m.message_type].toLowerCase())
             .map(str => str.replace(/\s/g, '_'))
         };
       }, {})

@@ -72,12 +72,13 @@ try {
   // Write domain file (see https://rasa.com/docs/core/domains/#domain-format)
   await fs.promises.writeFile(
     `${OUTPUT_PATH}/domain.yml`,
-    toYAML({
-      intents: intents.map(intent => intent.name),
-      entities: entities.map(entity => entity.name),
-      actions: Object.keys(templates),
-      templates
-    })
+    `# generated ${new Date().toLocaleString()}
+${toYAML({
+  intents: intents.map(intent => intent.name),
+  entities: entities.map(entity => entity.name),
+  actions: Object.keys(templates),
+  templates
+})}`
   );
   // Write story file (see https://rasa.com/docs/core/stories/#format)
   await fs.promises.writeFile(

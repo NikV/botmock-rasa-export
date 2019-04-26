@@ -19,7 +19,7 @@ BOTMOCK_TOKEN="@TOKEN"
 
 - run `npm start` to produce `/output`; containing your project's `Domain` and `Story` collection
 
-### Example
+<!-- ### Example
 
 ![]()
 
@@ -28,3 +28,4 @@ npm start
 ```
 
 ![]()
+ -->

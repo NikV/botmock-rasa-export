@@ -3,6 +3,7 @@ import * as utils from '@botmock-api/utils';
 import { stringify as toYAML } from 'yaml';
 import chalk from 'chalk';
 import fs from 'fs';
+import { genIntents } from './lib/nlu';
 import { toMd } from './lib/nlp';
 import SDKWrapper from './lib/SDKWrapper';
 import { OUTPUT_PATH } from './constants';
@@ -88,6 +89,13 @@ ${toYAML({
   templates
 })}`
   );
+
+  // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
+  await fs.promises.writeFile(
+    `${OUTPUT_PATH}/intents.md`,
+    genIntents(intents)
+  );
+
   // Write story file (see https://rasa.com/docs/core/stories/#format)
   await fs.promises.writeFile(
     `${STORIES_PATH}/story.md`,

@@ -57,6 +57,7 @@ try {
           let type, payload;
           switch (m.message_type) {
             // case 'carousel':
+            //   break;
             case 'image':
               type = 'image';
               payload = m.payload.image_url;
@@ -92,10 +93,7 @@ ${toYAML({
   );
 
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
-  await fs.promises.writeFile(
-    `${OUTPUT_PATH}/nlu.md`,
-    genIntents(intents)
-  );
+  await fs.promises.writeFile(`${OUTPUT_PATH}/nlu.md`, genIntents(intents));
 
   // Write story file (see https://rasa.com/docs/core/stories/#format)
   await fs.promises.writeFile(

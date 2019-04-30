@@ -74,7 +74,13 @@ try {
           }
           return {
             ...acc_,
-            [type || m.message_type]: payload || `${m.payload[m.message_type] ? m.payload[m.message_type].replace(/\n/g, '\\n') : m.payload[m.message_type]}`
+            [type || m.message_type]:
+              payload ||
+              `${
+                m.payload[m.message_type]
+                  ? m.payload[m.message_type].replace(/\n/g, '\\n')
+                  : m.payload[m.message_type]
+              }`
           };
         }, {})
       };
@@ -96,7 +102,7 @@ ${toYAML({
   await fs.promises.writeFile(`${OUTPUT_PATH}/nlu.md`, genIntents(intents));
   // Write story file (see https://rasa.com/docs/core/stories/#format) containing
   // stories for each journey (i.e. possible path) in the project
-  // TODO: use `genStories` util
+  // TODO: use `genStories` util to create this markdown
   await fs.promises.writeFile(
     `${STORIES_PATH}/story.md`,
     `<!-- generated ${new Date().toLocaleString()} -->

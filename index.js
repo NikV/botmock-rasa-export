@@ -26,6 +26,7 @@ try {
 // Output the following directory hierarchy:
 // output/
 //   |── domain.yml
+//   |── nlu.md
 //   └── project_name/
 //       └── story.md
 try {
@@ -92,7 +93,7 @@ ${toYAML({
 
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
   await fs.promises.writeFile(
-    `${OUTPUT_PATH}/intents.md`,
+    `${OUTPUT_PATH}/nlu.md`,
     genIntents(intents)
   );
 

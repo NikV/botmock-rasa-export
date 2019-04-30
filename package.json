@@ -26,11 +26,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@botmock-api/utils": "0.4.0",
+    "@botmock-api/utils": "0.5.1",
     "botmock": "1.2.0",
     "chalk": "2.4.2",
     "dotenv": "7.0.0",
     "esm": "3.2.22",
+    "uuid": "3.3.2",
     "yaml": "1.5.0"
   },
   "devDependencies": {

@@ -2,17 +2,18 @@
 import * as utils from '@botmock-api/utils';
 import { stringify as toYAML } from 'yaml';
 import chalk from 'chalk';
+import uuid from 'uuid/v4';
 import fs from 'fs';
-import { genIntents } from './lib/nlu';
-import { toMd } from './lib/nlp';
 import SDKWrapper from './lib/SDKWrapper';
+// import { genStories } from './lib/core';
+import { genIntents } from './lib/nlu';
 import { OUTPUT_PATH } from './constants';
 
 const client = new SDKWrapper();
 const { projectName, messages, intents, entities } = await client.init();
-const getMessage = id => messages.find(m => m.message_id === id);
-
 const STORIES_PATH = `${OUTPUT_PATH}/${projectName}`;
+
+const getMessage = id => messages.find(m => m.message_id === id);
 
 try {
   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
@@ -27,7 +28,7 @@ try {
 // output/
 //   |── domain.yml
 //   |── nlu.md
-//   └── project_name/
+//   └── PROJECT_NAME/
 //       └── story.md
 try {
   // TODO: heuristic for markdown file splitting
@@ -56,12 +57,12 @@ try {
         [nodeName]: [message, ...collectedMessages].reduce((acc_, m) => {
           let type, payload;
           switch (m.message_type) {
-            // case 'carousel':
-            //   break;
             case 'image':
               type = 'image';
               payload = m.payload.image_url;
               break;
+            // case 'generic':
+            // case 'list':
             case 'button':
             case 'quick_replies':
               type = 'buttons';
@@ -91,37 +92,27 @@ ${toYAML({
   templates
 })}`
   );
-
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
   await fs.promises.writeFile(`${OUTPUT_PATH}/nlu.md`, genIntents(intents));
-
-  // Write story file (see https://rasa.com/docs/core/stories/#format)
+  // Write story file (see https://rasa.com/docs/core/stories/#format) containing
+  // stories for each journey (i.e. possible path) in the project
+  // TODO: use `genStories` util
   await fs.promises.writeFile(
     `${STORIES_PATH}/story.md`,
     `<!-- generated ${new Date().toLocaleString()} -->
-${toMd({
-  name: projectName,
-  intents: Array.from(intentMap).reduce(
-    (acc, [messageId, intentIds]) => ({
-      ...acc,
-      ...intentIds.reduce((acc_, id) => {
-        const { name: intentName } = intents.find(i => i.id === id);
-        const message = getMessage(messageId);
-        return {
-          [intentName]: [
-            message,
-            ...nodeCollector(message.next_message_ids).map(getMessage)
-          ]
-            // TODO: rm this restriction
-            .filter(m => m.message_type === 'text')
-            .map(m => m.payload[m.message_type].toLowerCase())
-            .map(str => str.replace(/\s/g, '_'))
-        };
-      }, {})
-    }),
-    {}
-  )
-})}`
+${Array.from(utils.enumeratePaths(messages))
+  .map(messageIds => ({
+    name: `story_${uuid()}`,
+    intents: Array.from(intentMap)
+      .filter(([id]) => messageIds.includes(id))
+      .reduce((acc, [, intents]) => [...acc, ...intents], [])
+  }))
+  .reduce((acc, obj) => {
+    return `${acc}## ${obj.name}
+${obj.intents
+  .map(id => `* ${intents.find(i => i.id === id).name}\n`)
+  .join('')}\n`;
+  }, ``)}`
   );
   console.log(chalk.bold('done'));
 } catch (err) {

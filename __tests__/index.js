@@ -2,7 +2,8 @@ const fs = require('fs');
 const { join } = require('path');
 const { exec } = require('child_process');
 const { promisify } = require('util');
-const { OUTPUT_PATH } = require('../constants');
+
+const OUTPUT_PATH = join(process.cwd(), 'output');
 
 beforeEach(async () => {
   try {

@@ -53,6 +53,17 @@ templates:
   - oh_no!
 ```
 
+`intents.md`
+
+```
+<!-- 2019-04-18 15:03:32.000000 | 6f9354ab-c1e3-4342-a1b1-192a514a0388 -->
+## intent:something
+- {thing}
+- I want to do {thing}
+- Can I do {thing}?
+- Let me do {thing}?
+```
+
 ### Guide
 
 - clone this repo and create `/.env` with the following content:

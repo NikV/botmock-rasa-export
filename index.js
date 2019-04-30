@@ -73,7 +73,7 @@ try {
           }
           return {
             ...acc_,
-            [type || m.message_type]: payload || m.payload[m.message_type]
+            [type || m.message_type]: payload || `${m.payload[m.message_type] ? m.payload[m.message_type].replace(/\n/g, '\\n') : m.payload[m.message_type]}`
           };
         }, {})
       };

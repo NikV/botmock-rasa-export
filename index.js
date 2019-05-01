@@ -24,6 +24,8 @@ try {
   fs.mkdirSync(STORIES_PATH);
 }
 
+// TODO: heuristic for markdown file splitting
+// TODO(?): config file for which utterances should be prefixed with slot_ / utter_
 // Output the following directory hierarchy:
 // output/
 //   |── domain.yml
@@ -31,8 +33,6 @@ try {
 //   └── PROJECT_NAME/
 //       └── story.md
 try {
-  // TODO: heuristic for markdown file splitting
-  // TODO: config file for which utterances should be prefixed with slot_ / utter_ ?
   // Define map of messages -> intents connected to them
   const intentMap = utils.createIntentMap(messages);
   const nodeCollector = utils.createNodeCollector(intentMap, getMessage);

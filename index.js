@@ -4,16 +4,22 @@ import { stringify as toYAML } from 'yaml';
 import chalk from 'chalk';
 import uuid from 'uuid/v4';
 import fs from 'fs';
+import { join } from 'path';
 import SDKWrapper from './lib/SDKWrapper';
 // import { genStories } from './lib/core';
 import { genIntents } from './lib/nlu';
 import { OUTPUT_PATH } from './constants';
 
+try {
+  await utils.checkEnvVars();
+} catch (_) {
+  console.error('too few variables in .env');
+  process.exit(1);
+}
+
 const client = new SDKWrapper();
 const { projectName, messages, intents, entities } = await client.init();
-const STORIES_PATH = `${OUTPUT_PATH}/${projectName}`;
-
-const getMessage = id => messages.find(m => m.message_id === id);
+const STORIES_PATH = join(OUTPUT_PATH, projectName);
 
 try {
   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
@@ -24,6 +30,7 @@ try {
   fs.mkdirSync(STORIES_PATH);
 }
 
+const getMessage = id => messages.find(m => m.message_id === id);
 // TODO: heuristic for markdown file splitting
 // TODO(?): config file for which utterances should be prefixed with slot_ / utter_
 // Output the following directory hierarchy:
@@ -66,10 +73,12 @@ try {
             case 'button':
             case 'quick_replies':
               type = 'buttons';
-              payload = m.payload[m.message_type].map(({ title, payload }) => ({
-                title,
-                payload
-              }));
+              payload = (m.payload[m.message_type] || []).map(
+                ({ title, payload }) => ({
+                  title,
+                  payload
+                })
+              );
               break;
           }
           return {
@@ -122,6 +131,6 @@ ${obj.intents
   );
   console.log(chalk.bold('done'));
 } catch (err) {
-  console.error(err.message);
+  console.error(err);
   process.exit(1);
 }

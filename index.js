@@ -6,7 +6,7 @@ import uuid from 'uuid/v4';
 import fs from 'fs';
 import { join } from 'path';
 import SDKWrapper from './lib/SDKWrapper';
-// import { genStories } from './lib/core';
+import { genStoriesFromIntents } from './lib/storiesFromIntents';
 import { genIntents } from './lib/nlu';
 import { OUTPUT_PATH } from './constants';
 
@@ -38,6 +38,7 @@ const getMessage = id => messages.find(m => m.message_id === id);
 //   |── domain.yml
 //   |── nlu.md
 //   └── PROJECT_NAME/
+//       |── fromIntents.md
 //       └── story.md
 try {
   // Define map of messages -> intents connected to them
@@ -109,26 +110,34 @@ ${toYAML({
   );
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
   await fs.promises.writeFile(`${OUTPUT_PATH}/nlu.md`, genIntents(intents));
+
+  // Write stories.md file based on intents
+  const storyData = { intentMap, intents, nodeCollector, messages };
+  await fs.promises.writeFile(
+    join(STORIES_PATH, 'fromIntents.md'),
+    genStoriesFromIntents({ projectName, storyData })
+  );
+
   // Write story file (see https://rasa.com/docs/core/stories/#format) containing
   // stories for each journey (i.e. possible path) in the project
   // TODO: use `genStories` util to create this markdown
-  await fs.promises.writeFile(
-    `${STORIES_PATH}/story.md`,
-    `<!-- generated ${new Date().toLocaleString()} -->
-${Array.from(utils.enumeratePaths(messages))
-  .map(messageIds => ({
-    name: `story_${uuid()}`,
-    intents: Array.from(intentMap)
-      .filter(([id]) => messageIds.includes(id))
-      .reduce((acc, [, intents]) => [...acc, ...intents], [])
-  }))
-  .reduce((acc, obj) => {
-    return `${acc}## ${obj.name}
-${obj.intents
-  .map(id => `* ${intents.find(i => i.id === id).name}\n`)
-  .join('')}\n`;
-  }, ``)}`
-  );
+//   await fs.promises.writeFile(
+//     `${STORIES_PATH}/story.md`,
+//     `<!-- generated ${new Date().toLocaleString()} -->
+// ${Array.from(utils.enumeratePaths(messages))
+//   .map(messageIds => ({
+//     name: `story_${uuid()}`,
+//     intents: Array.from(intentMap)
+//       .filter(([id]) => messageIds.includes(id))
+//       .reduce((acc, [, intents]) => [...acc, ...intents], [])
+//   }))
+//   .reduce((acc, obj) => {
+//     return `${acc}## ${obj.name}
+// ${obj.intents
+//   .map(id => `* ${intents.find(i => i.id === id).name}\n`)
+//   .join('')}\n`;
+//   }, ``)}`
+//   );
   console.log(chalk.bold('done'));
 } catch (err) {
   console.error(err);

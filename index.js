@@ -31,8 +31,6 @@ try {
 }
 
 const getMessage = id => messages.find(m => m.message_id === id);
-// TODO: heuristic for markdown file splitting
-// TODO(?): config file for which utterances should be prefixed with slot_ / utter_
 // Output the following directory hierarchy:
 // output/
 //   |── domain.yml
@@ -99,7 +97,7 @@ try {
   );
   // Write domain file (see https://rasa.com/docs/core/domains/#domain-format)
   await fs.promises.writeFile(
-    `${OUTPUT_PATH}/domain.yml`,
+    join(OUTPUT_PATH, 'domain.yml'),
     `# generated ${new Date().toLocaleString()}
 ${toYAML({
   intents: intents.map(intent => intent.name),
@@ -109,7 +107,7 @@ ${toYAML({
 })}`
   );
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
-  await fs.promises.writeFile(`${OUTPUT_PATH}/nlu.md`, genIntents(intents));
+  await fs.promises.writeFile(join(OUTPUT_PATH, 'nlu.md'), genIntents(intents));
 
   // Write stories.md file based on intents
   const storyData = { intentMap, intents, nodeCollector, messages };
@@ -117,27 +115,6 @@ ${toYAML({
     join(STORIES_PATH, 'fromIntents.md'),
     genStoriesFromIntents({ projectName, storyData })
   );
-
-  // Write story file (see https://rasa.com/docs/core/stories/#format) containing
-  // stories for each journey (i.e. possible path) in the project
-  // TODO: use `genStories` util to create this markdown
-//   await fs.promises.writeFile(
-//     `${STORIES_PATH}/story.md`,
-//     `<!-- generated ${new Date().toLocaleString()} -->
-// ${Array.from(utils.enumeratePaths(messages))
-//   .map(messageIds => ({
-//     name: `story_${uuid()}`,
-//     intents: Array.from(intentMap)
-//       .filter(([id]) => messageIds.includes(id))
-//       .reduce((acc, [, intents]) => [...acc, ...intents], [])
-//   }))
-//   .reduce((acc, obj) => {
-//     return `${acc}## ${obj.name}
-// ${obj.intents
-//   .map(id => `* ${intents.find(i => i.id === id).name}\n`)
-//   .join('')}\n`;
-//   }, ``)}`
-//   );
   console.log(chalk.bold('done'));
 } catch (err) {
   console.error(err);

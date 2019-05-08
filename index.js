@@ -107,7 +107,10 @@ ${toYAML({
 })}`
   );
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
-  await fs.promises.writeFile(join(OUTPUT_PATH, 'nlu.md'), genIntents(intents));
+  await fs.promises.writeFile(
+    join(OUTPUT_PATH, 'nlu.md'),
+    genIntents(intents, entities)
+  );
 
   // Write stories.md file based on intents
   const storyData = { intentMap, intents, nodeCollector, messages };

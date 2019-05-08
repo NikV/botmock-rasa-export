@@ -82,9 +82,17 @@ BOTMOCK_BOARD_ID="@BOARD-ID"
 BOTMOCK_TOKEN="@TOKEN"
 ```
 
+#### Local installation
+
 - run `npm install`
 
 - run `npm start` to produce `/output`; containing your project's `Domain` and `Story` collection
+
+#### Docker installation
+
+1. run `docker build . --tag=botmock-export`
+2. run `sudo docker run -it -v $(pwd):/output botmock-export` (recommended to alias this command)
+3. see output in `./output`
 
 ## Want to help?
 

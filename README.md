@@ -62,6 +62,16 @@ templates:
 - I want to do [thing](thing)
 - Can I do [thing](thing)?
 - Let me do [thing](thing)?
+
+<!-- 2019-04-18 17:35:39.000000 | {entityId} -->
+## lookup:{entity_name}
+- {first value}
+- {second value}
+
+<!-- 2019-04-18 16:19:30.000000 | entity : {name} | {entityId} -->
+## synonym:{entity_val}
+- {first synonym}
+- {second synonym}
 ```
 
 ### Guide

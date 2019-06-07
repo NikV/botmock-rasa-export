@@ -1,7 +1,6 @@
 (await import('dotenv')).config();
 import * as utils from '@botmock-api/utils';
 import { stringify as toYAML } from 'yaml';
-import chalk from 'chalk';
 import uuid from 'uuid/v4';
 import fs from 'fs';
 import { join } from 'path';
@@ -118,7 +117,7 @@ ${toYAML({
     join(STORIES_PATH, 'fromIntents.md'),
     genStoriesFromIntents({ projectName, storyData })
   );
-  console.log(chalk.bold('done'));
+  console.log('done');
 } catch (err) {
   console.error(err);
   process.exit(1);

@@ -1,12 +1,11 @@
 (await import('dotenv')).config();
 import * as utils from '@botmock-api/utils';
 import { stringify as toYAML } from 'yaml';
-import chalk from 'chalk';
 import uuid from 'uuid/v4';
 import fs from 'fs';
 import { join } from 'path';
 import SDKWrapper from './lib/SDKWrapper';
-// import { genStories } from './lib/core';
+import { genStoriesFromIntents } from './lib/storiesFromIntents';
 import { genIntents } from './lib/nlu';
 import { OUTPUT_PATH } from './constants';
 
@@ -31,13 +30,12 @@ try {
 }
 
 const getMessage = id => messages.find(m => m.message_id === id);
-// TODO: heuristic for markdown file splitting
-// TODO(?): config file for which utterances should be prefixed with slot_ / utter_
 // Output the following directory hierarchy:
 // output/
 //   |── domain.yml
 //   |── nlu.md
 //   └── PROJECT_NAME/
+//       |── fromIntents.md
 //       └── story.md
 try {
   // Define map of messages -> intents connected to them
@@ -98,7 +96,7 @@ try {
   );
   // Write domain file (see https://rasa.com/docs/core/domains/#domain-format)
   await fs.promises.writeFile(
-    `${OUTPUT_PATH}/domain.yml`,
+    join(OUTPUT_PATH, 'domain.yml'),
     `# generated ${new Date().toLocaleString()}
 ${toYAML({
   intents: intents.map(intent => intent.name),
@@ -108,28 +106,18 @@ ${toYAML({
 })}`
   );
   // Write intent file (see https://rasa.com/docs/nlu/dataformat/)
-  await fs.promises.writeFile(`${OUTPUT_PATH}/nlu.md`, genIntents(intents));
-  // Write story file (see https://rasa.com/docs/core/stories/#format) containing
-  // stories for each journey (i.e. possible path) in the project
-  // TODO: use `genStories` util to create this markdown
   await fs.promises.writeFile(
-    `${STORIES_PATH}/story.md`,
-    `<!-- generated ${new Date().toLocaleString()} -->
-${Array.from(utils.enumeratePaths(messages))
-  .map(messageIds => ({
-    name: `story_${uuid()}`,
-    intents: Array.from(intentMap)
-      .filter(([id]) => messageIds.includes(id))
-      .reduce((acc, [, intents]) => [...acc, ...intents], [])
-  }))
-  .reduce((acc, obj) => {
-    return `${acc}## ${obj.name}
-${obj.intents
-  .map(id => `* ${intents.find(i => i.id === id).name}\n`)
-  .join('')}\n`;
-  }, ``)}`
+    join(OUTPUT_PATH, 'nlu.md'),
+    genIntents(intents, entities)
   );
-  console.log(chalk.bold('done'));
+
+  // Write stories.md file based on intents
+  const storyData = { intentMap, intents, nodeCollector, messages };
+  await fs.promises.writeFile(
+    join(STORIES_PATH, 'fromIntents.md'),
+    genStoriesFromIntents({ projectName, storyData })
+  );
+  console.log('done');
 } catch (err) {
   console.error(err);
   process.exit(1);

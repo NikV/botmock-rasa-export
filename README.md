@@ -25,6 +25,8 @@ BOTMOCK_BOARD_ID="@BOARD-ID"
 BOTMOCK_TOKEN="@TOKEN"
 ```
 
+#### Local installation
+
 - run `npm install`
 
 - run `npm start` to produce `/output`; containing your project's `Domain` and `Story` collection

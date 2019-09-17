@@ -1,6 +1,7 @@
 import "dotenv/config";
 import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
+// import * as botmock from "@botmock-api/integrations";
 // import * as utils from "@botmock-api/utils";
 // import { stringify as toYAML } from "yaml";
 import { remove, mkdirp } from "fs-extra";
@@ -31,7 +32,13 @@ Sentry.init({
   release: `${pkg.name}@${pkg.version}`,
   integrations: [new RewriteFrames({
     root: global.__rootdir__
-  })]
+  })],
+  beforeSend(event): Sentry.Event {
+    // if (event.user) {
+    //   delete event.user.email
+    // }
+    return event;
+  }
 });
 
 async function main(args: string[]): Promise<void> {
@@ -63,6 +70,9 @@ async function main(args: string[]): Promise<void> {
   }
   log("done");
 }
+
+process.on("unhandledRejection", () => {});
+process.on("uncaughtException", () => {});
 
 main(process.argv).catch(err => {
   if (!process.env.SHOULD_OPT_OUT_OF_ERROR_REPORTING) {

@@ -9,6 +9,7 @@ import { join } from "path";
 // @ts-ignore
 import pkg from "./package.json";
 import { default as APIWrapper } from "./lib/project";
+// import { default as FileWriter } from "./lib/file";
 // import { genStoriesFromIntents } from "./lib/storiesFromIntents";
 // import { genIntents } from "./lib/nlu";
 import { SENTRY_DSN } from "./lib/constants";
@@ -54,6 +55,9 @@ async function main(args: string[]): Promise<void> {
     });
     log("fetching botmock assets");
     const projectData: Assets.CollectedResponses = await apiWrapper.fetch();
+    // const writer = new FileWriter({ outputDir, projectData });
+    // await writer.createYml();
+    // await writer.createMd();
   } catch (err) {
     throw err;
   }

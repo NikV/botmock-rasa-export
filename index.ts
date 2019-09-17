@@ -1,5 +1,6 @@
 import "dotenv/config";
 import * as Sentry from "@sentry/node";
+import { RewriteFrames } from "@sentry/integrations";
 // import * as utils from "@botmock-api/utils";
 // import { stringify as toYAML } from "yaml";
 import { remove, mkdirp } from "fs-extra";
@@ -26,7 +27,10 @@ global.__rootdir__ = __dirname || process.cwd();
 
 Sentry.init({
   dsn: SENTRY_DSN,
-  release: `${pkg.name}@${pkg.version}`
+  release: `${pkg.name}@${pkg.version}`,
+  integrations: [new RewriteFrames({
+    root: global.__rootdir__
+  })]
 });
 
 async function main(args: string[]): Promise<void> {

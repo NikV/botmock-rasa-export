@@ -8,11 +8,7 @@ Build Rasa bots from [Botmock](https://botmock.com) projects.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/en/) >= 10.15.x
-
-```shell
-node --version
-```
+- [Node.js](https://nodejs.org/en/)
 
 ### Guide
 

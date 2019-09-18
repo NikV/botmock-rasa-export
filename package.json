@@ -6,6 +6,9 @@
     "test": "jest",
     "start": "ts-node index.ts"
   },
+  "engines": {
+    "node": ">=6"
+  },
   "keywords": [
     "botmock",
     "rasa",
@@ -17,6 +20,8 @@
     "printWidth": 80
   },
   "jest": {
+    "collectCoverage": true,
+    "testEnvironment": "node",
     "preset": "ts-jest",
     "globals": {
       "ts-jest": {

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
-// import * as botmock from "@botmock-api/integrations";
+// import * as Botmock from "@botmock-api/integrations";
 // import * as utils from "@botmock-api/utils";
 // import { stringify as toYAML } from "yaml";
 import { remove, mkdirp } from "fs-extra";
@@ -33,16 +33,12 @@ Sentry.init({
   integrations: [new RewriteFrames({
     root: global.__rootdir__
   })],
-  beforeSend(event): Sentry.Event {
-    // if (event.user) {
-    //   delete event.user.email
-    // }
-    return event;
-  }
+  // beforeSend(event): Sentry.Event {
+  //   return event;
+  // }
 });
 
 async function main(args: string[]): Promise<void> {
-  // Sentry.captureMessage("entered main");
   try {
     log("recreating output directory");
     const outputDir = join(__dirname, "output");
@@ -78,6 +74,7 @@ main(process.argv).catch(err => {
   if (!process.env.SHOULD_OPT_OUT_OF_ERROR_REPORTING) {
     Sentry.captureException(err);
   }
+  log(err, { hasError: true });
   process.exit(1);
 })
 

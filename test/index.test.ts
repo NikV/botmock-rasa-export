@@ -3,18 +3,72 @@ import { remove, mkdirp, readFile } from "fs-extra";
 import { default as FileWriter } from "../lib/file";
 import * as Assets from "../lib/types";
 
-let projectData: void | Assets.Project;
+let projectData: Assets.CollectedResponses;
 const outputDir = join(__dirname, "output");
 
 beforeEach(async () => {
-  // projectData = {};
   await remove(outputDir);
   await mkdirp(outputDir);
+  projectData = {
+    project: {
+      id: "",
+      name: "name",
+      type: "",
+      platform: "",
+      created_at: {
+        date: new Date().toLocaleString(),
+        timezone_type: 3,
+        timezone: ""
+      },
+      updated_at: {
+        date: new Date().toLocaleString(),
+        timezone_type: 3,
+        timezone: ""
+      }
+    },
+    intents: [],
+    entities: [],
+    variables: [],
+    board: {
+      board: {
+        root_messages: [], messages: [{
+          message_id: "",
+          message_type: "",
+          next_message_ids: [],
+          previous_message_ids: [],
+          is_root: false,
+          payload: {
+            nodeName: "",
+            context: [],
+            text: "",
+            workflow_index: 1
+          }
+        }]
+      },
+      slots: {},
+      variables: [],
+      created_at: {
+        date: new Date().toLocaleString(),
+        timezone_type: 3,
+        timezone: ""
+      },
+      updated_at: {
+        date: new Date().toLocaleString(),
+        timezone_type: 3,
+        timezone: ""
+      }
+    }
+  }
 });
 
 afterAll(async () => {
   await remove(outputDir);
 });
 
-test.todo("create yml method creates yml file in output");
+test("create yml method creates yml file in output", async () => {
+  const OPENING_LINE = "# generated";
+  await new FileWriter({ outputDir, projectData }).createYml();
+  expect((await readFile(join(outputDir, "domain.yml"))).toString().startsWith(OPENING_LINE)).toBe(true);
+});
+
 test.todo("create md method creates md file in output");

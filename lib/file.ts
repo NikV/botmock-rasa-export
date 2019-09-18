@@ -119,8 +119,18 @@ ${toYAML({
       })}`
     );
   }
+/**
+ * Write intent file
+ * @returns Promise<void>
+ */
+  private async writeIntentFile(): Promise<void> {}
   /**
-   * Writes yml file within outputDir
+   * Write stories file
+   * @returns Promise<void>
+   */
+  private async writeStoriesFile(): Promise<void> {}
+  /**
+   * Writes md file within outputDir
    * @returns Promise<void>
    */
   public async createMd(): Promise<void> {

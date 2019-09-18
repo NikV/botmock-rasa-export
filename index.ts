@@ -60,7 +60,7 @@ async function main(args: string[]): Promise<void> {
     const projectData: Assets.CollectedResponses = await apiWrapper.fetch();
     const writer = new FileWriter({ outputDir, projectData });
     await writer.createYml();
-    // await writer.createMd();
+    await writer.createMd();
   } catch (err) {
     log(err.stack, { hasError: true });
     throw err;

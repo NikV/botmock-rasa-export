@@ -1,11 +1,11 @@
 import * as utils from "@botmock-api/utils";
-import { writeFile } from "fs-extra";
+import { writeFile, outputFile } from "fs-extra";
 import { stringify as toYAML } from "yaml";
 import { EventEmitter } from "events";
 import { join } from "path";
 // import { EOL } from "os";
 import * as Assets from "./types";
-// import { genIntents } from "./nlu";
+import { genIntents } from "./nlu";
 // import { genStoriesFromIntents } from "./storiesFromIntents";
 
 type Templates = { [key: string]: any };
@@ -108,7 +108,7 @@ export default class FileWriter extends EventEmitter {
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
     const templates = this.createTemplates();
-    return writeFile(
+    return await writeFile(
       outputFilePath,
       `# generated ${this.init}
 ${toYAML({
@@ -117,11 +117,18 @@ ${toYAML({
         actions: Object.keys(templates),
         templates
       })}`
-    )
+    );
   }
   /**
    * Writes yml file within outputDir
    * @returns Promise<void>
    */
-  public async createMd(): Promise<void> {}
+  public async createMd(): Promise<void> {
+    const outputFilePath = join(this.outputDir, "nlu.md");
+    const { intents, entities } = this.projectData;
+    await writeFile(
+      outputFilePath,
+      genIntents({ intents, entities })
+    );
+  }
 }

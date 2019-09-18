@@ -16,9 +16,5 @@ afterAll(async () => {
   await remove(outputDir);
 });
 
-test("create yml method creates yml file in output", async () => {
-  // await new FileWriter({ outputDir, projectData }).createYml();
-  // expect((await readFile(join(outputDir, "domain.yml"))).toString()).toBe("");
-});
-
+test.todo("create yml method creates yml file in output");
 test.todo("create md method creates md file in output");

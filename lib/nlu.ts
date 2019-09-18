@@ -1,4 +1,4 @@
-export function genIntents(intents, entities) {
+export function genIntents({ intents, entities }) {
   // for each example, input the appropriate entity values mapped to entities (if any)
   const generateExample = ({ text, variables }, entityList) => {
     if (variables) {

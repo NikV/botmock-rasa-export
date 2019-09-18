@@ -1,6 +1,6 @@
 import { join } from "path";
 import { remove, mkdirp } from "fs-extra";
-// import { default as FileWriter } from "../lib/file";
+import { default as FileWriter } from "../lib/file";
 
 const outputDir = join(__dirname, "output");
 

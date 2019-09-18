@@ -2,17 +2,12 @@ import "dotenv/config";
 import * as Sentry from "@sentry/node";
 import { RewriteFrames } from "@sentry/integrations";
 // import * as Botmock from "@botmock-api/integrations";
-// import * as utils from "@botmock-api/utils";
-// import { stringify as toYAML } from "yaml";
 import { remove, mkdirp } from "fs-extra";
-// import uuid from "uuid/v4";
 import { join } from "path";
 // @ts-ignore
 import pkg from "./package.json";
 import { default as APIWrapper } from "./lib/project";
-// import { default as FileWriter } from "./lib/file";
-// import { genStoriesFromIntents } from "./lib/storiesFromIntents";
-// import { genIntents } from "./lib/nlu";
+import { default as FileWriter } from "./lib/file";
 import { SENTRY_DSN } from "./lib/constants";
 import { log } from "./lib/log";
 import * as Assets from "./lib/types";
@@ -58,8 +53,8 @@ async function main(args: string[]): Promise<void> {
     });
     log("fetching botmock assets");
     const projectData: Assets.CollectedResponses = await apiWrapper.fetch();
-    // const writer = new FileWriter({ outputDir, projectData });
-    // await writer.createYml();
+    const writer = new FileWriter({ outputDir, projectData });
+    await writer.createYml();
     // await writer.createMd();
   } catch (err) {
     throw err;
@@ -81,15 +76,6 @@ main(process.argv).catch(err => {
 // const client = new SDKWrapper();
 // const { projectName, messages, intents, entities } = await client.init();
 // const STORIES_PATH = join(OUTPUT_PATH, projectName);
-
-// try {
-//   await fs.promises.access(OUTPUT_PATH, fs.constants.R_OK);
-//   await fs.promises.access(STORIES_PATH, fs.constants.R_OK);
-// } catch (_) {
-//   // Create output directories if inexistant
-//   fs.mkdirSync(OUTPUT_PATH);
-//   fs.mkdirSync(STORIES_PATH);
-// }
 
 // const getMessage = id => messages.find(m => m.message_id === id);
 // // Output the following directory hierarchy:

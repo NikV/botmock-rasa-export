@@ -10,7 +10,13 @@ import * as Assets from "./types";
 
 type Templates = { [key: string]: any };
 type IntentMap = Map<string, string[]>;
-type Message = any;
+type Message = Partial<{
+  message_type: string;
+  payload: {
+    selectedResult: any;
+    image_url: string;
+  };
+}>;
 
 interface Config {
   outputDir: string;
@@ -18,11 +24,12 @@ interface Config {
 }
 
 export default class FileWriter extends EventEmitter {
-  private init: string;
   private outputDir: string;
-  private intentMap: IntentMap;
-  private nodeCollector: Function;
   private projectData: Assets.CollectedResponses;
+  private intentMap: IntentMap;
+  private messageCollector: Function;
+  private getMessage: Function;
+  private init: string;
   /**
    * Creates instance of FileWriter
    * @param config configuration object containing an outputDir to hold generated
@@ -33,16 +40,11 @@ export default class FileWriter extends EventEmitter {
     this.init = new Date().toLocaleString();
     this.outputDir = config.outputDir;
     this.projectData = config.projectData;
+    this.getMessage = (id: string): Message => (
+      this.projectData.board.board.messages.find(message => message.message_id === id)
+    );
     this.intentMap = utils.createIntentMap(this.projectData.board.board.messages);
-    this.nodeCollector = utils.createNodeCollector(this.intentMap, this.getMessage);
-  }
-  /**
-   * Gets message within the board from its id
-   * @param id unique id of the message
-   * @returns Message
-   */
-  private getMessage(id: string): Message {
-    return this.projectData.board.board.messages.find(message => message.message_id === id);
+    this.messageCollector = utils.createMessageCollector(this.intentMap, this.getMessage);
   }
   /**
    * Creates yml-consumable object from intent map
@@ -50,12 +52,12 @@ export default class FileWriter extends EventEmitter {
    */
   private createTemplates(): Templates {
     return Array.from(this.intentMap).reduce(
-      (acc, [messageId, intentIds]) => {
+      (acc, [messageId]) => {
         const message = this.getMessage(messageId);
-        const collectedMessages = this.nodeCollector(message.next_message_ids).map(this.getMessage);
+        const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage);
         // Grab this message's response name; if this name has been seen already, append its id to it
         let { nodeName } = message.payload;
-        nodeName = nodeName.replace(/\s/g, '_').toLowerCase();
+        nodeName = nodeName.replace(/\s/g, "_").toLowerCase();
         if (Object.keys(acc).includes(nodeName)) {
           nodeName = `${nodeName}-${messageId}`;
         }
@@ -65,30 +67,31 @@ export default class FileWriter extends EventEmitter {
           [nodeName]: [message, ...collectedMessages].reduce((acc_, m: Message) => {
             let type, payload: any;
             switch (m.message_type) {
-              case 'image':
-                type = 'image';
+              case "jump":
+                type = "jump";
+                payload = JSON.parse(m.payload.selectedResult).value;
+                break;
+              case "image":
+                type = "image";
                 payload = m.payload.image_url;
                 break;
-              // case 'generic':
-              // case 'list':
-              case 'button':
-              case 'quick_replies':
-                type = 'buttons';
-                payload = (m.payload[m.message_type] || []).map(
-                  ({ title, payload }) => ({
-                    title,
-                    payload
-                  })
-                );
+              // case "generic":
+              // case "list":
+              case "button":
+              case "quick_replies":
+                type = "buttons";
+                payload = (m.payload[m.message_type] || []).map(({ title, payload }) => ({
+                  title,
+                  payload
+                }));
                 break;
             }
             return {
               ...acc_,
               [type || m.message_type]:
                 payload ||
-                `${
-                m.payload[m.message_type]
-                  ? m.payload[m.message_type].replace(/\n/g, '\\n')
+                `${m.payload[m.message_type]
+                  ? m.payload[m.message_type].replace(/\n/g, "\\n")
                   : m.payload[m.message_type]
                 }`
             };

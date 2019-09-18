@@ -34,9 +34,14 @@ Sentry.init({
 });
 
 async function main(args: string[]): Promise<void> {
+  const DEFAULT_OUTPUT_DIR = "output";
+  let [, , outputDirectory] = args;
+  if (process.env.OUTPUT_DIR) {
+    outputDirectory = process.env.OUTPUT_DIR
+  }
+  const outputDir = join(__dirname, outputDirectory || DEFAULT_OUTPUT_DIR);
   try {
     log("recreating output directory");
-    const outputDir = join(__dirname, "output");
     await remove(outputDir);
     await mkdirp(outputDir);
     const apiWrapper = new APIWrapper({
@@ -57,6 +62,7 @@ async function main(args: string[]): Promise<void> {
     await writer.createYml();
     // await writer.createMd();
   } catch (err) {
+    log(err.stack, { hasError: true });
     throw err;
   }
   log("done");
@@ -69,7 +75,6 @@ main(process.argv).catch(err => {
   if (!process.env.SHOULD_OPT_OUT_OF_ERROR_REPORTING) {
     Sentry.captureException(err);
   }
-  log(err, { hasError: true });
   process.exit(1);
 })
 

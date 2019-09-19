@@ -6,7 +6,10 @@ import { join } from "path";
 import { EOL } from "os";
 import * as Assets from "./types";
 import { genIntents } from "./nlu";
-import { genStoriesFromIntents } from "./storiesFromIntents";
+import {
+  genStoriesFromIntents,
+  convertIntentStructureToStories
+} from "./storiesFromIntents";
 
 export type IntentMap = Map<string, string[]>;
 type Templates = { [key: string]: any };
@@ -113,13 +116,29 @@ export default class FileWriter extends EventEmitter {
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
     const templates = this.createTemplates();
+    const storyData = {
+      intents: this.projectData.intents,
+      intentMap: this.intentMap,
+      messageCollector: this.messageCollector,
+      messages: this.projectData.board.board.messages
+    };
+    const actions = Object.values(convertIntentStructureToStories(storyData))
+      .reduce((acc, values: string[]) => {
+        return {
+          ...acc,
+          ...values.reduce((accu, value) => ({
+            ...accu,
+            [value]: {}
+          }), {})
+        }
+      }, []);
     return await writeFile(
       outputFilePath,
       `# generated ${this.init}
 ${toYAML({
         intents: this.projectData.intents.map(intent => intent.name),
         entities: this.projectData.entities.map(entity => entity.name),
-        actions: Object.keys(templates).map(key => `utter_${key}`),
+        actions: Object.keys(actions).map(key => `utter_${key}`),
         templates
       })}`
     );

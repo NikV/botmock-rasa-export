@@ -2,7 +2,7 @@ import { EOL } from "os";
 import { IntentMap } from "./file"
 import * as Assets from "./types";
 
-interface ConversionConfig {
+interface IntentObj {
   intentMap: IntentMap;
   intents: Assets.Intent[];
   messageCollector: Function;
@@ -11,7 +11,13 @@ interface ConversionConfig {
 
 type Stories = { [intent: string]: string[] };
 
-const convertToStories = ({ intentMap, intents, messageCollector, messages }: ConversionConfig): Stories => {
+/**
+ * Creates object associating intent names with the titles of blocks that flow from them
+ * @param intentObj Intent object that describes relation between messages and intents
+ * @returns Stories
+ */
+export function convertIntentStructureToStories(intentObj: IntentObj): Stories {
+  const { messages, intents, intentMap, messageCollector } = intentObj;
   const getMessage = (id: string): Assets.Message | void => (
     messages.find(message => message.message_id === id)
   );
@@ -37,7 +43,7 @@ const convertToStories = ({ intentMap, intents, messageCollector, messages }: Co
     }),
     {}
   );
-};
+}
 
 const generateStoryArray = (projectName: string, stories: Stories): string[] => {
   const generateUtterances = (story, stories) =>
@@ -68,7 +74,7 @@ interface Config {
  * @returns string
  */
 export function genStoriesFromIntents({ projectName, storyData }: Config): string {
-  const stories: Stories = convertToStories(storyData);
+  const stories: Stories = convertIntentStructureToStories(storyData);
   const storyStrings = generateStoryArray(projectName, stories).join(EOL);
   const timestamp = new Date();
   return `<!-- start | ${timestamp} -->${EOL}${storyStrings}${EOL}<!-- end | ${timestamp} -->${EOL}`;

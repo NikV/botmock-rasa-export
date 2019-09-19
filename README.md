@@ -1,6 +1,6 @@
 # Botmock Rasa Export
 
-Build Rasa bots from [Botmock](https://botmock.com) projects.
+Create [Rasa](https://rasa.com) bots from [Botmock](https://botmock.com) projects.
 
 - Tutorial Video (Coming Soon)
 - Documentation (Coming Soon)
@@ -10,22 +10,32 @@ Build Rasa bots from [Botmock](https://botmock.com) projects.
 
 - [Node.js](https://nodejs.org/en/)
 
-### Guide
+## Guide
 
-- clone this repo and create `/.env` with the following content:
+### installation
 
+- clone this repo, cd into it, and create `.env`:
+
+```shell
+git clone git@github.com:Botmock/botmock-rasa-export.git
+
+cd botmock-rasa-export
+
+touch .env
 ```
-BOTMOCK_TEAM_ID="@TEAM-ID"
-BOTMOCK_PROJECT_ID="@PROJECT-ID"
-BOTMOCK_BOARD_ID="@BOARD-ID"
-BOTMOCK_TOKEN="@TOKEN"
-```
 
-#### Local installation
+- edit `.env` to contain the following (with your own values filled in):
+
+```shell
+BOTMOCK_TEAM_ID=@TEAM-ID
+BOTMOCK_PROJECT_ID=@PROJECT-ID
+BOTMOCK_BOARD_ID=@BOARD-ID
+BOTMOCK_TOKEN=@TOKEN
+```
 
 - run `npm install`
 
-- run `npm start` to produce `/output`; containing your project's `Domain` and `Story` collection
+- run `npm start` to produce `/output`, containing your project's domain and stories.
 
 ## Want to help?
 

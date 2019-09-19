@@ -1,14 +1,14 @@
 # Botmock Rasa Export
 
-Create [Rasa](https://rasa.com) bots from [Botmock](https://botmock.com) projects.
+Generate [Rasa](https://rasa.com) [training data](https://rasa.com/docs/rasa/nlu/training-data-format/#training-data-format), [stories](https://rasa.com/docs/rasa/core/stories/#stories) and [domain](https://rasa.com/docs/rasa/core/domains/) from [Botmock](https://botmock.com) projects.
 
-- Tutorial Video (Coming Soon)
-- Documentation (Coming Soon)
-- [Support Email](mailto:help@botmock.com)
+<!-- ## Sample Output -->
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/en/)
+
+- [Rasa](https://rasa.com/docs/rasa/user-guide/installation/#quick-installation)
 
 ## Guide
 
@@ -35,7 +35,7 @@ BOTMOCK_TOKEN=@TOKEN
 
 - run `npm install`
 
-- run `npm start` to produce `/output`, containing your project's domain and stories.
+- run `npm start` to produce `/output`, containing your project's training data, stories, and domain files.
 
 ## Want to help?
 

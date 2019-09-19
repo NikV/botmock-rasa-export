@@ -135,16 +135,15 @@ ${toYAML({
    * @returns Promise<void>
    */
   private async writeStoriesFile(): Promise<void> {
-    const { project, board, intents } = this.projectData;
-    await mkdirp(join(this.outputDir, project.name));
-    const storiesFilePath = join(this.outputDir, project.name, "fromIntents.md")
+    const { project: { name: projectName }, board, intents } = this.projectData;
+    const storiesFilePath = join(this.outputDir, projectName, "fromIntents.md")
     const storyData = {
       intents,
       intentMap: this.intentMap,
       messageCollector: this.messageCollector,
       messages: board.board.messages
     };
-    const projectName = project.name;
+    await mkdirp(join(this.outputDir, projectName));
     await writeFile(
       storiesFilePath,
       genStoriesFromIntents({ projectName, storyData })

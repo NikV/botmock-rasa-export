@@ -2,6 +2,8 @@ export type CollectedResponses = { [assetName: string]: any };
 
 export type Message = any;
 
+export type Entity = any;
+
 export type Intent = {
   id: string;
   name: string;
@@ -36,7 +38,7 @@ export interface Project {
     updated_at: {};
   };
   intents: Intent[];
-  entities: any[];
+  entities: Entity[];
   variables: any[];
 }
 

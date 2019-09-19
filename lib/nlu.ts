@@ -1,4 +1,18 @@
-export function genIntents({ intents, entities }) {
+import { EOL } from "os"
+import * as Assets from "./types";
+
+interface Config {
+  intents: Assets.Intent[];
+  entities: Assets.Entity[];
+}
+
+/**
+ * Creates markdown content for intents
+ * @param config Object containing intents and entities of the project
+ * @returns string
+ */
+
+export function genIntents({ intents, entities }: Config): string {
   // for each example, input the appropriate entity values mapped to entities (if any)
   const generateExample = ({ text, variables }, entityList) => {
     if (variables) {
@@ -6,14 +20,14 @@ export function genIntents({ intents, entities }) {
       variables.forEach(({ name, entity: variableId }) => {
         // side effect: replaces Botmock variable with Rasa entity
         // likely good place to refactor using more FP
-        let search = new RegExp(name, 'gi');
+        let search = new RegExp(name, "gi");
         const formattedName = name
-          .replace(/%/g, '')
-          .replace(/ /g, '_')
+          .replace(/%/g, "")
+          .replace(/ /g, "_")
           .toLowerCase();
 
         output = output.replace(search, `[${formattedName}](${formattedName})`);
-        search = new RegExp(`\\[(${formattedName})\\]`, 'gi');
+        search = new RegExp(`\\[(${formattedName})\\]`, "gi");
         // good place to have NLG domain specific language like Chatito or Chatette take over
         output = (entityList
           // find matching entity, get array of data values it can take on
@@ -31,7 +45,7 @@ export function genIntents({ intents, entities }) {
                 ...synonyms.map(synonym =>
                   output.replace(search, `[${synonym.trim()}]`)
                 )
-              ].join('\n- ');
+              ].join(`${EOL}- `);
               return multipleExamples;
             }
             return singleExample;
@@ -51,7 +65,7 @@ export function genIntents({ intents, entities }) {
     return `
 <!-- ${timestamp} | ${id} -->
 ## intent:${name.toLowerCase()}
-${examples.map(example => generateExample(example, entities)).join('\n')}
+${examples.map(example => generateExample(example, entities)).join(EOL)}
 `;
   };
 
@@ -68,12 +82,12 @@ ${examples.map(example => generateExample(example, entities)).join('\n')}
     // if there are less synonyms than values, create a lookup table
     if (synonym_variance < values.length) {
       const lookupArr = values.map(({ value, synonyms }) =>
-        synonyms.length ? `- ${value}\n- ${synonyms.join('\n-')}` : `- ${value}`
+        synonyms.length ? `- ${value}\n- ${synonyms.join(`${EOL}-`)}` : `- ${value}`
       );
       return `
 <!-- ${timestamp} | ${id} -->
-## lookup:${name.replace(/ |-/g, '_').toLowerCase()}
-${lookupArr.join('\n')}
+## lookup:${name.replace(/ |-/g, "_").toLowerCase()}
+${lookupArr.join(EOL)}
 `;
     } else {
       // else, there are enough synonyms
@@ -81,19 +95,19 @@ ${lookupArr.join('\n')}
         ({ value, synonyms }) =>
           `
 <!-- ${timestamp} | entity : ${name} | ${id} -->
-## synonym:${value.replace(/ |-/g, '_').toLowerCase()}
+## synonym:${value.replace(/ |-/g, "_").toLowerCase()}
 - ${
             synonyms.length
-              ? synonyms.join('\n-')
-              : '<!-- need to generate value synonyms here -->'
+              ? synonyms.join(`${EOL}-`)
+              : "<!-- need to generate value synonyms here -->"
           }
 `
       );
-      return synonymsArray.join('\n');
+      return synonymsArray.join(EOL);
     }
   };
 
   // return the file to be written as a string
-  return `${intents.map(intent => generateIntent(intent, entities)).join('\n')}
-${entities.map(entity => genEntity(entity)).join('\n')}`;
+  return `${intents.map((intent: any) => generateIntent(intent, entities)).join(EOL)}
+${entities.map(entity => genEntity(entity)).join(EOL)}`;
 }

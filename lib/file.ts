@@ -3,6 +3,7 @@ import { writeFile } from "fs-extra";
 import { stringify as toYAML } from "yaml";
 import { EventEmitter } from "events";
 import { join } from "path";
+import { EOL } from "os";
 import * as Assets from "./types";
 import { genIntents } from "./nlu";
 import { genStoriesFromIntents } from "./storiesFromIntents";
@@ -63,42 +64,47 @@ export default class FileWriter extends EventEmitter {
         // Map messages to those appropriate for Rasa yaml; i.e. group certain types to carry the same payload
         return {
           ...acc,
-          [nodeName]: [message, ...collectedMessages].reduce((acc_, m: Message) => {
-            let type, payload: any;
-            switch (m.message_type) {
+          [nodeName]: [message, ...collectedMessages].reduce((accu, message: Message) => {
+            let type: string;
+            let payload: any;
+            switch (message.message_type) {
               case "jump":
+                const { label } = JSON.parse(message.payload.selectedResult)
                 type = "jump";
-                payload = JSON.parse(m.payload.selectedResult).value;
+                payload = `jumped to ${label}`;
                 break;
               case "image":
                 type = "image";
-                payload = m.payload.image_url;
+                payload = message.payload.image_url;
                 break;
               // case "generic":
               // case "list":
               case "button":
               case "quick_replies":
                 type = "buttons";
-                payload = (m.payload[m.message_type] || []).map(({ title, payload }) => ({
+                payload = (message.payload[message.message_type] || []).map(({ title, payload }) => ({
                   title,
                   payload
                 }));
                 break;
             }
+            let value = payload ||
+                `${message.payload[message.message_type]
+                  ? message.payload[message.message_type].replace(/\n/g, EOL)
+                  : message.payload[message.message_type]
+                }`;
+            if (typeof value === "string") {
+              value = utils.symmetricWrap(value, { l: "{", r: "}" });
+            }
             return {
-              ...acc_,
-              [type || m.message_type]:
-                payload ||
-                `${m.payload[m.message_type]
-                  ? m.payload[m.message_type].replace(/\n/g, "\\n")
-                  : m.payload[m.message_type]
-                }`
+              ...accu,
+              [type || message.message_type]: value
             };
           }, {})
         };
       },
       {}
-    )
+    );
   }
   /**
    * Writes yml file within outputDir

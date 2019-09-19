@@ -1,5 +1,5 @@
 import { join } from "path";
-import { remove, mkdirp, readFile } from "fs-extra";
+import { remove, mkdirp, readFile, readdir } from "fs-extra";
 import { default as FileWriter } from "../lib/file";
 import * as Assets from "../lib/types";
 
@@ -66,9 +66,17 @@ afterAll(async () => {
 });
 
 test("create yml method creates yml file in output", async () => {
-  const OPENING_LINE = "# generated";
+  const OPENING_CHARACTERS = "# generated";
   await new FileWriter({ outputDir, projectData }).createYml();
-  expect((await readFile(join(outputDir, "domain.yml"))).toString().startsWith(OPENING_LINE)).toBe(true);
+  expect(
+    (await readFile(join(outputDir, "domain.yml"))).toString().startsWith(OPENING_CHARACTERS)
+  ).toBe(true);
 });
 
-test.todo("create md method creates md file in output");
+test("create md method creates md files in output", async () => {
+  const OPENING_CHARACTERS = "<!--";
+  await new FileWriter({ outputDir, projectData }).createMd();
+  expect((await readdir(outputDir))).toHaveLength(2);
+  expect((await readFile(join(outputDir, "stories.md"))).toString().startsWith(OPENING_CHARACTERS)).toBe(true);
+  // expect((await readFile(join(outputDir, "nlu.md"))).toString().startsWith(OPENING_CHARACTERS)).toBe(true);
+});

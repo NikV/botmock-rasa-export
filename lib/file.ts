@@ -119,7 +119,7 @@ export default class FileWriter extends EventEmitter {
 ${toYAML({
         intents: this.projectData.intents.map(intent => intent.name),
         entities: this.projectData.entities.map(entity => entity.name),
-        actions: Object.keys(templates),
+        actions: Object.keys(templates).map(key => `utter_${key}`),
         templates
       })}`
     );

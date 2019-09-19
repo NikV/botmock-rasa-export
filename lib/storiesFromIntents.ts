@@ -9,9 +9,12 @@ interface ConversionConfig {
   messages: Assets.Message[];
 }
 
-const convertToStories = ({ intentMap, intents, messageCollector, messages }: ConversionConfig) => {
-  // console.log(intentMap);
-  const getMessage = id => messages.find(m => m.message_id === id);
+type Stories = { [intent: string]: string[] };
+
+const convertToStories = ({ intentMap, intents, messageCollector, messages }: ConversionConfig): Stories => {
+  const getMessage = (id: string): Assets.Message | void => (
+    messages.find(message => message.message_id === id)
+  );
   return Array.from(intentMap).reduce(
     (acc, [messageId, intentIds]) => ({
       ...acc,
@@ -24,7 +27,7 @@ const convertToStories = ({ intentMap, intents, messageCollector, messages }: Co
               message,
               ...messageCollector(message.next_message_ids).map(getMessage)
             ]
-              .map(m => m.payload.nodeName.toLowerCase())
+              .map(message => message.payload.nodeName.toLowerCase())
               .map(str => str.replace(/\s/g, "_"))
           };
         } else {
@@ -36,7 +39,7 @@ const convertToStories = ({ intentMap, intents, messageCollector, messages }: Co
   );
 };
 
-const generateStoryArray = (projectName: string, stories: Object): string[] => {
+const generateStoryArray = (projectName: string, stories: Stories): string[] => {
   const generateUtterances = (story, stories) =>
     stories[story].map(utterance => generateUtterance(utterance)).join(EOL);
   const generateUtterance = utterance => `  - utter_${utterance}`;
@@ -65,7 +68,7 @@ interface Config {
  * @returns string
  */
 export function genStoriesFromIntents({ projectName, storyData }: Config): string {
-  const stories: Object = convertToStories(storyData);
+  const stories: Stories = convertToStories(storyData);
   const storyStrings = generateStoryArray(projectName, stories).join(EOL);
   const timestamp = new Date();
   return `<!-- start | ${timestamp} -->${EOL}${storyStrings}${EOL}<!-- end | ${timestamp} -->${EOL}`;

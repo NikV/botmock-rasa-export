@@ -1,5 +1,5 @@
 import * as utils from "@botmock-api/utils";
-import { writeFile } from "fs-extra";
+import { writeFile, mkdirp } from "fs-extra";
 import { stringify as toYAML } from "yaml";
 import { EventEmitter } from "events";
 import { join } from "path";
@@ -130,7 +130,8 @@ ${toYAML({
  */
   private async writeIntentFile(): Promise<void> {
     const { intents, entities } = this.projectData;
-    const outputFilePath = join(this.outputDir, "nlu.md");
+    const outputFilePath = join(this.outputDir, "data", "nlu.md");
+    await mkdirp(join(this.outputDir, "data"));
     await writeFile(
       outputFilePath,
       genIntents({ intents, entities })
@@ -142,7 +143,7 @@ ${toYAML({
    */
   private async writeStoriesFile(): Promise<void> {
     const { project: { name: projectName }, board, intents } = this.projectData;
-    const outputFilePath = join(this.outputDir, "stories.md");
+    const outputFilePath = join(this.outputDir, "data", "stories.md");
     const storyData = {
       intents,
       intentMap: this.intentMap,

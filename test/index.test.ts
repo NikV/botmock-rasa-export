@@ -76,7 +76,7 @@ test("create yml method creates yml file in output", async () => {
 test("create md method creates md files in output", async () => {
   const OPENING_CHARACTERS = "<!--";
   await new FileWriter({ outputDir, projectData }).createMd();
-  expect((await readdir(outputDir))).toHaveLength(2);
-  expect((await readFile(join(outputDir, "stories.md"))).toString().startsWith(OPENING_CHARACTERS)).toBe(true);
+  expect((await readdir(join(outputDir, "data")))).toHaveLength(2);
+  expect((await readFile(join(outputDir, "data", "stories.md"))).toString().startsWith(OPENING_CHARACTERS)).toBe(true);
   // expect((await readFile(join(outputDir, "nlu.md"))).toString().startsWith(OPENING_CHARACTERS)).toBe(true);
 });

@@ -1,6 +1,8 @@
 # Botmock Rasa Export
 
-Generate [Rasa](https://rasa.com) [training data](https://rasa.com/docs/rasa/nlu/training-data-format/#training-data-format), [stories](https://rasa.com/docs/rasa/core/stories/#stories) and [domain](https://rasa.com/docs/rasa/core/domains/) from [Botmock](https://botmock.com) projects.
+> Build [Rasa](https://rasa.com) bots from [Botmock](https://botmock.com) projects
+
+This script generates Rasa [training data](https://rasa.com/docs/rasa/nlu/training-data-format/#training-data-format), [stories](https://rasa.com/docs/rasa/core/stories/#stories), and [domain](https://rasa.com/docs/rasa/core/domains/) from a given Botmock project.
 
 <!-- ## Sample Output -->
 

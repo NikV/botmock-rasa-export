@@ -11,70 +11,50 @@ interface Config {
  * @param config Object containing intents and entities of the project
  * @returns string
  */
-
 export function genIntents({ intents, entities }: Config): string {
-  // for each example, input the appropriate entity values mapped to entities (if any)
-  const generateExample = ({ text, variables }, entityList) => {
+  const generateExample = ({ text, variables }, entityList): string => {
+    let str: string = text;
     if (variables) {
-      let output = text;
-      variables.forEach(({ name, entity: variableId }) => {
+      variables.forEach(({ name, entity: variableId }: Partial<Assets.Variable>) => {
         // side effect: replaces Botmock variable with Rasa entity
-        // likely good place to refactor using more FP
         let search = new RegExp(name, "gi");
         const formattedName = name
           .replace(/%/g, "")
           .replace(/ /g, "_")
           .toLowerCase();
-
-        output = output.replace(search, `[${formattedName}](${formattedName})`);
+        str = text.replace(search, `[${formattedName}](${formattedName})`);
         search = new RegExp(`\\[(${formattedName})\\]`, "gi");
-        // good place to have NLG domain specific language like Chatito or Chatette take over
-        output = (entityList
+        // TODO: interface with chatito or chatette
+        const matchingEntity = entityList.find(entity => entity.id === variableId);
+        if (typeof matchingEntity !== "undefined") {
           // find matching entity, get array of data values it can take on
-          .find(({ id: entityId }) => entityId === variableId) || { data:[] })
-          .data.map(({ value: entityVal, synonyms }) => {
-            //create a copy of the current example for each entity value
-            const singleExample = output.replace(
-              search,
-              `[${entityVal.trim()}]`
-            );
-            if (synonyms.length > 0) {
-              // create examples for each synonym (required by rasa for detection)
-              const multipleExamples = [
-                singleExample,
-                ...synonyms.map(synonym =>
-                  output.replace(search, `[${synonym.trim()}]`)
-                )
-              ].join(`${EOL}- `);
-              return multipleExamples;
+          str = matchingEntity.data.map(({ value: entityVal, synonyms }) => {
+              //create a copy of the current example for each entity value
+              const singleExample = str.replace(search, `[${entityVal.trim()}]`);
+              if (synonyms.length > 0) {
+                // create examples for each synonym (required by rasa for detection)
+                const multipleExamples = [
+                  singleExample,
+                  ...synonyms.map(synonym => str.replace(search, `[${synonym.trim()}]`))
+                ].join(`${EOL}- `);
+                return multipleExamples;
+              }
+              return singleExample;
             }
-            return singleExample;
-          });
+          );
+        }
       });
-      return `- ${output}`;
-    } else {
-      return `- ${text}`;
     }
+    return `- ${str}`;
   };
 
-  // for each intent, create comment with id an timestamp
-  const generateIntent = (
-    { id, name, utterances: examples, updated_at: { date: timestamp } },
-    entities
-  ) => {
-    return `
-<!-- ${timestamp} | ${id} -->
+  const generateIntent = ({ id, name, utterances: examples, updated_at: { date: timestamp } }, entities): string => {
+    return `<!-- ${timestamp} | ${id} -->
 ## intent:${name.toLowerCase()}
-${examples.map(example => generateExample(example, entities)).join(EOL)}
-`;
+${examples.map(example => generateExample(example, entities)).join(EOL)}`;
   };
 
-  const genEntity = ({
-    id,
-    name,
-    data: values,
-    updated_at: { date: timestamp }
-  }) => {
+  const generateEntity = ({ id, name, data: values, updated_at: { date: timestamp } }): string => {
     const synonym_variance = values.reduce(
       (count, { synonyms }) => count + synonyms.length,
       0
@@ -96,18 +76,12 @@ ${lookupArr.join(EOL)}
           `
 <!-- ${timestamp} | entity : ${name} | ${id} -->
 ## synonym:${value.replace(/ |-/g, "_").toLowerCase()}
-- ${
-            synonyms.length
-              ? synonyms.join(`${EOL}-`)
-              : "<!-- need to generate value synonyms here -->"
-          }
-`
+- ${synonyms.length ? synonyms.join(`${EOL}-`) : "<!-- need to generate value synonyms here -->"}`
       );
       return synonymsArray.join(EOL);
     }
   };
-
   // return the file to be written as a string
   return `${intents.map((intent: any) => generateIntent(intent, entities)).join(EOL)}
-${entities.map(entity => genEntity(entity)).join(EOL)}`;
+${entities.map(entity => generateEntity(entity)).join(EOL)}`;
 }

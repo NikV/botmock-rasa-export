@@ -42,7 +42,7 @@ export interface Project {
   variables: any[];
 }
 
-type Variable = {
+export type Variable = {
   id: string;
   name: string;
   type: string;

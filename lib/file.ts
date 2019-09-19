@@ -119,26 +119,23 @@ ${toYAML({
     );
   }
 /**
- * Write intent file
+ * Write intent markdown file
  * @returns Promise<void>
  */
-  private async writeIntentFile(): Promise<void> {}
-  /**
-   * Write stories file
-   * @returns Promise<void>
-   */
-  private async writeStoriesFile(): Promise<void> {}
-  /**
-   * Writes md file within outputDir
-   * @returns Promise<void>
-   */
-  public async createMd(): Promise<void> {
+  private async writeIntentFile(): Promise<void> {
+    const { intents, entities } = this.projectData;
     const outputFilePath = join(this.outputDir, "nlu.md");
-    const { intents, entities, project, board } = this.projectData;
     await writeFile(
       outputFilePath,
       genIntents({ intents, entities })
     );
+  }
+  /**
+   * Write stories markdown file
+   * @returns Promise<void>
+   */
+  private async writeStoriesFile(): Promise<void> {
+    const { project, board, intents } = this.projectData;
     await mkdirp(join(this.outputDir, project.name));
     const storiesFilePath = join(this.outputDir, project.name, "fromIntents.md")
     const storyData = {
@@ -152,5 +149,13 @@ ${toYAML({
       storiesFilePath,
       genStoriesFromIntents({ projectName, storyData })
     )
+  }
+  /**
+   * Writes markdown files within outputDir
+   * @returns Promise<void>
+   */
+  public async createMd(): Promise<void> {
+    await this.writeIntentFile();
+    await this.writeStoriesFile();
   }
 }

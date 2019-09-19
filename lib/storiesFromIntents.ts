@@ -11,7 +11,6 @@ interface ConversionConfig {
 
 const convertToStories = ({ intentMap, intents, messageCollector, messages }: ConversionConfig) => {
   const getMessage = id => messages.find(m => m.message_id === id);
-  // returns array of stories with form: intent -> utterances
   return Array.from(intentMap).reduce(
     (acc, [messageId, intentIds]) => ({
       ...acc,
@@ -27,7 +26,7 @@ const convertToStories = ({ intentMap, intents, messageCollector, messages }: Co
             ...messageCollector(message.next_message_ids).map(getMessage)
           ]
             .map(m => m.payload.nodeName.toLowerCase())
-            .map(str => str.replace(/\s/g, '_'))
+            .map(str => str.replace(/\s/g, "_"))
         };
       }, {})
     }),
@@ -35,15 +34,15 @@ const convertToStories = ({ intentMap, intents, messageCollector, messages }: Co
   );
 };
 
-const generateStoryArray = (projectName, stories) => {
+const generateStoryArray = (projectName: string, stories: Object): string[] => {
   const generateUtterances = (story, stories) =>
-    stories[story].map(utterance => generateUtterance(utterance)).join('\n');
+    stories[story].map(utterance => generateUtterance(utterance)).join(EOL);
   const generateUtterance = utterance => `  - utter_${utterance}`;
   return Object.keys(stories).map(
     story =>
       `## ${projectName} | ${story.replace(
         /_/g,
-        ' '
+        " "
       )}\n* ${story}\n${generateUtterances(story, stories)}`
   );
 };
@@ -64,9 +63,8 @@ interface Config {
  * @returns string
  */
 export function genStoriesFromIntents({ projectName, storyData }: Config): string {
-  const stories = convertToStories(storyData);
-  // console.log(stories);
-  const storyStrings = generateStoryArray(projectName, stories).join('\n\n');
+  const stories: Object = convertToStories(storyData);
+  const storyStrings = generateStoryArray(projectName, stories).join(EOL);
   const timestamp = new Date();
-  return `<!-- start | ${timestamp} -->\n${storyStrings}\n<!-- end | ${timestamp} -->${EOL}`;
+  return `<!-- start | ${timestamp} -->${EOL}${storyStrings}${EOL}<!-- end | ${timestamp} -->${EOL}`;
 }

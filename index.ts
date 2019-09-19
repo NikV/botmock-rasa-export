@@ -29,6 +29,9 @@ Sentry.init({
     root: global.__rootdir__
   })],
   // beforeSend(event): Sentry.Event {
+  //   if (event.user.email) {
+  //     delete event.user.email;
+  //   }
   //   return event;
   // }
 });

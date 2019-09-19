@@ -1,15 +1,14 @@
 import * as utils from "@botmock-api/utils";
-import { writeFile, outputFile } from "fs-extra";
+import { writeFile, mkdirp } from "fs-extra";
 import { stringify as toYAML } from "yaml";
 import { EventEmitter } from "events";
 import { join } from "path";
-// import { EOL } from "os";
 import * as Assets from "./types";
 import { genIntents } from "./nlu";
-// import { genStoriesFromIntents } from "./storiesFromIntents";
+import { genStoriesFromIntents } from "./storiesFromIntents";
 
+export type IntentMap = Map<string, string[]>;
 type Templates = { [key: string]: any };
-type IntentMap = Map<string, string[]>;
 type Message = Partial<{
   message_type: string;
   payload: {
@@ -135,10 +134,23 @@ ${toYAML({
    */
   public async createMd(): Promise<void> {
     const outputFilePath = join(this.outputDir, "nlu.md");
-    const { intents, entities } = this.projectData;
+    const { intents, entities, project, board } = this.projectData;
     await writeFile(
       outputFilePath,
       genIntents({ intents, entities })
     );
+    await mkdirp(join(this.outputDir, project.name));
+    const storiesFilePath = join(this.outputDir, project.name, "fromIntents.md")
+    const storyData = {
+      intents,
+      intentMap: this.intentMap,
+      messageCollector: this.messageCollector,
+      messages: board.board.messages
+    };
+    const projectName = project.name;
+    await writeFile(
+      storiesFilePath,
+      genStoriesFromIntents({ projectName, storyData })
+    )
   }
 }

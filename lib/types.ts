@@ -1,5 +1,7 @@
 export type CollectedResponses = { [assetName: string]: any };
 
+export type Message = any;
+
 export type Intent = {
   id: string;
   name: string;
@@ -37,8 +39,6 @@ export interface Project {
   entities: any[];
   variables: any[];
 }
-
-type Message = any;
 
 type Variable = {
   id: string;

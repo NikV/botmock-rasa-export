@@ -10,24 +10,26 @@ interface ConversionConfig {
 }
 
 const convertToStories = ({ intentMap, intents, messageCollector, messages }: ConversionConfig) => {
+  // console.log(intentMap);
   const getMessage = id => messages.find(m => m.message_id === id);
   return Array.from(intentMap).reduce(
     (acc, [messageId, intentIds]) => ({
       ...acc,
-      // generates a single story
-      ...intentIds.reduce((acc_, id) => {
-        // find the intent and gets its name
-        const { name: intentName }: any = intents.find(i => i.id === id) || {};
-        // gets a message object
-        const message = getMessage(messageId);
-        return {
-          [intentName]: [
-            message,
-            ...messageCollector(message.next_message_ids).map(getMessage)
-          ]
-            .map(m => m.payload.nodeName.toLowerCase())
-            .map(str => str.replace(/\s/g, "_"))
-        };
+      ...intentIds.reduce((accu, id: string) => {
+        const message: Assets.Message = getMessage(messageId);
+        const intent: Assets.Intent = intents.find(intent => intent.id === id);
+        if (typeof intent !== "undefined") {
+          return {
+            [intent.name]: [
+              message,
+              ...messageCollector(message.next_message_ids).map(getMessage)
+            ]
+              .map(m => m.payload.nodeName.toLowerCase())
+              .map(str => str.replace(/\s/g, "_"))
+          };
+        } else {
+          return accu;
+        }
       }, {})
     }),
     {}
@@ -43,7 +45,7 @@ const generateStoryArray = (projectName: string, stories: Object): string[] => {
       `## ${projectName} | ${story.replace(
         /_/g,
         " "
-      )}\n* ${story}\n${generateUtterances(story, stories)}`
+      )}${EOL}* ${story}${EOL}${generateUtterances(story, stories)}`
   );
 };
 

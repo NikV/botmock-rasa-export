@@ -1,5 +1,5 @@
 import * as utils from "@botmock-api/utils";
-import { writeFile, mkdirp } from "fs-extra";
+import { writeFile } from "fs-extra";
 import { stringify as toYAML } from "yaml";
 import { EventEmitter } from "events";
 import { join } from "path";
@@ -42,7 +42,7 @@ export default class FileWriter extends EventEmitter {
     this.getMessage = (id: string): Message => (
       this.projectData.board.board.messages.find(message => message.message_id === id)
     );
-    this.intentMap = utils.createIntentMap(this.projectData.board.board.messages);
+    this.intentMap = utils.createIntentMap(this.projectData.board.board.messages, this.projectData.intents);
     this.messageCollector = utils.createMessageCollector(this.intentMap, this.getMessage);
   }
   /**
@@ -136,16 +136,15 @@ ${toYAML({
    */
   private async writeStoriesFile(): Promise<void> {
     const { project: { name: projectName }, board, intents } = this.projectData;
-    const storiesFilePath = join(this.outputDir, projectName, "fromIntents.md")
+    const outputFilePath = join(this.outputDir, "stories.md");
     const storyData = {
       intents,
       intentMap: this.intentMap,
       messageCollector: this.messageCollector,
       messages: board.board.messages
     };
-    await mkdirp(join(this.outputDir, projectName));
     await writeFile(
-      storiesFilePath,
+      outputFilePath,
       genStoriesFromIntents({ projectName, storyData })
     )
   }

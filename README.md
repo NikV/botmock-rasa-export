@@ -4,13 +4,11 @@
 
 This script generates Rasa [training data](https://rasa.com/docs/rasa/nlu/training-data-format/#training-data-format), [stories](https://rasa.com/docs/rasa/core/stories/#stories), and [domain](https://rasa.com/docs/rasa/core/domains/) from a given Botmock project.
 
-<!-- ## Sample Output -->
-
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/en/)
+- [Node.js](https://nodejs.org/en/) installation
 
-- [Rasa](https://rasa.com/docs/rasa/user-guide/installation/#quick-installation)
+- [Rasa](https://rasa.com/docs/rasa/user-guide/installation/#quick-installation) installation
 
 ## Guide
 

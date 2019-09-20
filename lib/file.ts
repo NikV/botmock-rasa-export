@@ -12,6 +12,7 @@ import {
 } from "./storiesFromIntents";
 
 export type IntentMap = Map<string, string[]>;
+
 type Templates = { [key: string]: any };
 type Message = Partial<{
   message_type: string;
@@ -22,8 +23,8 @@ type Message = Partial<{
 }>;
 
 interface Config {
-  outputDir: string;
-  projectData: Assets.CollectedResponses
+  readonly outputDir: string;
+  readonly projectData: Assets.CollectedResponses
 }
 
 export default class FileWriter extends EventEmitter {
@@ -58,16 +59,10 @@ export default class FileWriter extends EventEmitter {
       (acc, [messageId]) => {
         const message = this.getMessage(messageId);
         const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage);
-        // Grab this message's response name; if this name has been seen already, append its id to it
-        let { nodeName } = message.payload;
-        nodeName = nodeName.replace(/\s/g, "_").toLowerCase();
-        if (Object.keys(acc).includes(nodeName)) {
-          nodeName = `${nodeName}-${messageId}`;
-        }
-        // Map messages to those appropriate for Rasa yaml; i.e. group certain types to carry the same payload
+        const templateName = message.payload.nodeName.toLowerCase().replace(/\s/g, "_");
         return {
           ...acc,
-          [nodeName]: [message, ...collectedMessages].reduce((accu, message: Message) => {
+          [`utter_${templateName}`]: [message, ...collectedMessages].reduce((accu, message: Message) => {
             let type: string;
             let payload: any;
             switch (message.message_type) {
@@ -114,15 +109,13 @@ export default class FileWriter extends EventEmitter {
    * @returns Promise<void>
    */
   public async createYml(): Promise<void> {
-    const outputFilePath = join(this.outputDir, "domain.yml");
-    const templates = this.createTemplates();
     const storyData = {
       intents: this.projectData.intents,
       intentMap: this.intentMap,
       messageCollector: this.messageCollector,
       messages: this.projectData.board.board.messages
     };
-    const actions = Object.values(convertIntentStructureToStories(storyData))
+    const uniqueActions = Object.values(convertIntentStructureToStories(storyData))
       .reduce((acc, values: string[]) => {
         return {
           ...acc,
@@ -131,15 +124,16 @@ export default class FileWriter extends EventEmitter {
             [value]: {}
           }), {})
         }
-      }, []);
+      }, {});
+    const outputFilePath = join(this.outputDir, "domain.yml");
     return await writeFile(
       outputFilePath,
       `# generated ${this.init}
 ${toYAML({
         intents: this.projectData.intents.map(intent => intent.name),
         entities: this.projectData.entities.map(entity => entity.name),
-        actions: Object.keys(actions).map(key => `utter_${key}`),
-        templates
+        actions: Object.keys(uniqueActions).map(action => `utter_${action}`),
+        templates: this.createTemplates()
       })}`
     );
   }

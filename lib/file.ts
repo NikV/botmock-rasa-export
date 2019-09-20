@@ -92,7 +92,7 @@ export default class FileWriter extends EventEmitter {
             switch (message.message_type) {
               case "jump":
                 const { label } = JSON.parse(message.payload.selectedResult)
-                type = "jump";
+                type = "text";
                 payload = `jumped to ${label}`;
                 break;
               case "image":

@@ -4,9 +4,9 @@ import * as Assets from "./types";
 
 interface IntentObj {
   intentMap: IntentMap;
-  intents: Assets.Intent[];
   messageCollector: Function;
-  messages: Assets.Message[];
+  readonly intents: Assets.Intent[];
+  readonly messages: Assets.Message[];
 }
 
 type Stories = { [intent: string]: string[] };
@@ -46,21 +46,25 @@ export function convertIntentStructureToStories(intentObj: IntentObj): Stories {
 }
 
 const generateStoryArray = (projectName: string, stories: Stories): string[] => {
-  const generateUtterances = (story, stories) =>
-    stories[story].map(utterance => generateUtterance(utterance)).join(EOL);
-  const generateUtterance = utterance => `  - utter_${utterance}`;
+  const generateUtterance = (utterance: string): string => `  - utter_${utterance}`;
+  const generateUtterances = (story, stories): string[] => (
+    stories[story].map((utterance, i: number) => {
+      return generateUtterance(utterance);
+    }).join(EOL)
+  );
   return Object.keys(stories).map(
-    story =>
-      `## ${projectName} | ${story.replace(
+    (story: string, i: number) => (
+      `${i !== 0 ? EOL : ""}## ${projectName} | ${story.replace(
         /_/g,
         " "
       )}${EOL}* ${story}${EOL}${generateUtterances(story, stories)}`
+    )
   );
 };
 
 interface Config {
-  projectName: string;
-  storyData: {
+  readonly projectName: string;
+  readonly storyData: {
     intents: Assets.Intent[];
     intentMap: IntentMap;
     messageCollector: Function;

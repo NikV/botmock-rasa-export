@@ -51,6 +51,30 @@ export default class FileWriter extends EventEmitter {
     this.messageCollector = utils.createMessageCollector(this.intentMap, this.getMessage);
   }
   /**
+   * Gets the unique action names for the template
+   * @returns string[]
+   */
+  private getUniqueActionNames(): string[] {
+    const storyData = {
+      intents: this.projectData.intents,
+      intentMap: this.intentMap,
+      messageCollector: this.messageCollector,
+      messages: this.projectData.board.board.messages
+    };
+    return Object.keys(
+      Object.values(convertIntentStructureToStories(storyData))
+        .reduce((acc, values: string[]) => {
+          return {
+            ...acc,
+            ...values.reduce((accu, value) => ({
+              ...accu,
+              [value]: {}
+            }), {})
+          }
+        }, {}))
+      .map(action => `utter_${action}`);
+  }
+  /**
    * Creates yml-consumable object from intent map
    * @returns Templates
    */
@@ -109,22 +133,6 @@ export default class FileWriter extends EventEmitter {
    * @returns Promise<void>
    */
   public async createYml(): Promise<void> {
-    const storyData = {
-      intents: this.projectData.intents,
-      intentMap: this.intentMap,
-      messageCollector: this.messageCollector,
-      messages: this.projectData.board.board.messages
-    };
-    const uniqueActions = Object.values(convertIntentStructureToStories(storyData))
-      .reduce((acc, values: string[]) => {
-        return {
-          ...acc,
-          ...values.reduce((accu, value) => ({
-            ...accu,
-            [value]: {}
-          }), {})
-        }
-      }, {});
     const outputFilePath = join(this.outputDir, "domain.yml");
     return await writeFile(
       outputFilePath,
@@ -132,7 +140,7 @@ export default class FileWriter extends EventEmitter {
 ${toYAML({
         intents: this.projectData.intents.map(intent => intent.name),
         entities: this.projectData.entities.map(entity => entity.name),
-        actions: Object.keys(uniqueActions).map(action => `utter_${action}`),
+        actions: this.getUniqueActionNames(),
         templates: this.createTemplates()
       })}`
     );

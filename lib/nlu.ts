@@ -2,8 +2,8 @@ import { EOL } from "os"
 import * as Assets from "./types";
 
 interface Config {
-  intents: Assets.Intent[];
-  entities: Assets.Entity[];
+  readonly intents: Assets.Intent[];
+  readonly entities: Assets.Entity[];
 }
 
 /**
@@ -48,17 +48,15 @@ export function genIntents({ intents, entities }: Config): string {
     return `- ${str}`;
   };
 
-  const generateIntent = ({ id, name, utterances: examples, updated_at: { date: timestamp } }, entities): string => {
-    return `<!-- ${timestamp} | ${id} -->
+  const generateIntent = (intent: any, entities: any, index: number): string => {
+    const { id, name, utterances: examples, updated_at: { date: timestamp } } = intent;
+    return `${index !== 0 ? EOL : ""}<!-- ${timestamp} | ${id} -->
 ## intent:${name.toLowerCase()}
 ${examples.map(example => generateExample(example, entities)).join(EOL)}`;
   };
 
   const generateEntity = ({ id, name, data: values, updated_at: { date: timestamp } }): string => {
-    const synonym_variance = values.reduce(
-      (count, { synonyms }) => count + synonyms.length,
-      0
-    );
+    const synonym_variance: number = values.reduce((count, { synonyms }) => count + synonyms.length, 0);
     // if there are less synonyms than values, create a lookup table
     if (synonym_variance < values.length) {
       const lookupArr = values.map(({ value, synonyms }) =>
@@ -82,6 +80,6 @@ ${lookupArr.join(EOL)}
     }
   };
   // return the file to be written as a string
-  return `${intents.map((intent: any) => generateIntent(intent, entities)).join(EOL)}
+  return `${intents.map((intent: Assets.Intent, i: number) => generateIntent(intent, entities, i)).join(EOL)}
 ${entities.map(entity => generateEntity(entity)).join(EOL)}`;
 }

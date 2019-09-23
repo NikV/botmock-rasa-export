@@ -1,6 +1,14 @@
 export type CollectedResponses = { [assetName: string]: any };
 
-export type Message = any;
+export type Message = Partial<{
+  message_id: string;
+  message_type: string;
+  next_message_ids: any[];
+  payload: {
+    selectedResult: any;
+    image_url: string;
+  };
+}>;
 
 export type Entity = any;
 

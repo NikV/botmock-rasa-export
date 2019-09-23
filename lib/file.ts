@@ -13,15 +13,6 @@ export type IntentMap = Map<string, string[]>;
 
 type Templates = { [actionName: string]: { [type: string]: any } };
 
-type Message = Partial<{
-  message_id: string;
-  message_type: string;
-  payload: {
-    selectedResult: any;
-    image_url: string;
-  };
-}>;
-
 interface Config {
   readonly outputDir: string;
   readonly projectData: Assets.CollectedResponses
@@ -45,8 +36,8 @@ export default class FileWriter extends EventEmitter {
     this.init = new Date().toLocaleString();
     this.outputDir = config.outputDir;
     this.projectData = config.projectData;
-    this.getMessage = (id: string): Message => (
-      this.projectData.board.board.messages.find((message: Message) => message.message_id === id)
+    this.getMessage = (id: string): Assets.Message => (
+      this.projectData.board.board.messages.find((message: Assets.Message) => message.message_id === id)
     );
     this.intentMap = utils.createIntentMap(this.projectData.board.board.messages, this.projectData.intents);
     this.messageCollector = utils.createMessageCollector(this.intentMap, this.getMessage);
@@ -76,17 +67,18 @@ export default class FileWriter extends EventEmitter {
       .map(action => `utter_${action}`);
   }
   /**
-   * Creates templates
+   * Creates object describing templates for the project
    * @returns Templates
    */
   private createTemplates(): Templates {
-    return Array.from(this.intentMap).reduce(
-      (acc, [idOfMessageConnectedByIntent]) => {
-        const message = this.getMessage(idOfMessageConnectedByIntent);
-        const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage);
+    const templateList = this.getUniqueActionNames()
+      .reduce((acc, actionName: string) => {
+        const PREFIX_LENGTH = 6;
+        const message = this.getMessage(actionName.slice(PREFIX_LENGTH));
+        const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage)
         return {
           ...acc,
-          [`utter_${message.message_id}`]: [message, ...collectedMessages].reduce((accu, message: Message) => {
+          [actionName]: [message, ...collectedMessages].reduce((accu, message: Assets.Message) => {
             let type: string;
             let payload: any;
             switch (message.message_type) {
@@ -120,10 +112,10 @@ export default class FileWriter extends EventEmitter {
                 payload = typeof payloadValue !== "string" ? JSON.stringify(payloadValue) : payloadValue;
             }
             let value = payload ||
-                `${message.payload[message.message_type]
-                  ? message.payload[message.message_type].replace(/\n/g, EOL)
-                  : message.payload[message.message_type]
-                }`;
+              `${message.payload[message.message_type]
+                ? message.payload[message.message_type].replace(/\n/g, EOL)
+                : message.payload[message.message_type]
+              }`;
             if (typeof value === "string") {
               value = utils.symmetricWrap(value, { l: "{", r: "}" });
             }
@@ -131,11 +123,10 @@ export default class FileWriter extends EventEmitter {
               ...accu,
               [type || message.message_type]: value
             };
-          }, {})
-        };
-      },
-      {}
-    );
+          })
+        }
+      }, {});
+      return templateList;
   }
   /**
    * Writes yml domain file
@@ -144,11 +135,9 @@ export default class FileWriter extends EventEmitter {
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
     const firstLine = `# generated ${this.init}`;
-    // console.log(this.createTemplates());
-    // console.log(this.stories);
     const data = toYAML({
-      intents: this.projectData.intents.map(intent => intent.name),
-      entities: this.projectData.variables.map(entity => entity.name.replace(/\s/, "")),
+      intents: this.projectData.intents.map((intent: Assets.Intent) => intent.name),
+      entities: this.projectData.variables.map((entity: Assets.Variable) => entity.name.replace(/\s/, "")),
       actions: this.getUniqueActionNames(),
       templates: this.createTemplates()
     });

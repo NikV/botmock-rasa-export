@@ -75,11 +75,10 @@ test("create yml method creates yml file in output", async () => {
 });
 
 test("create md method creates md files in output", async () => {
-  const OPENING_CHARACTERS = "<!--";
-  const ENDING_CHARACTERS = ") -->";
+  const OPENING_CHARACTERS = "<!-- ";
   await new FileWriter({ outputDir, projectData }).createMd();
   const stories = (await readFile(join(outputDir, "data", "stories.md"))).toString();
   expect((await readdir(join(outputDir, "data")))).toHaveLength(2);
   expect(stories.startsWith(OPENING_CHARACTERS)).toBe(true);
-  expect(stories.endsWith(ENDING_CHARACTERS + EOL)).toBe(true);
+  expect(stories.endsWith(EOL)).toBe(true);
 });

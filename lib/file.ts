@@ -1,5 +1,5 @@
 import * as utils from "@botmock-api/utils";
-// import uuid from "uuid/v4";
+import uuid from "uuid/v4";
 import { writeFile, mkdirp } from "fs-extra";
 import { stringify as toYAML } from "yaml";
 import { EventEmitter } from "events";
@@ -8,7 +8,7 @@ import { EOL } from "os";
 import * as Assets from "./types";
 import { genIntents } from "./nlu";
 import {
-  genStoriesFromIntents,
+  // genStoriesFromIntents,
   convertIntentStructureToStories
 } from "./storiesFromIntents";
 
@@ -111,6 +111,7 @@ export default class FileWriter extends EventEmitter {
                 break;
               // case "generic":
               // case "list":
+              // case "api":
               default:
                 const value = message.payload[message.message_type];
                 type = "text";
@@ -151,7 +152,7 @@ export default class FileWriter extends EventEmitter {
     );
   }
 /**
- * Write intent markdown file
+ * Writes intent markdown file
  * @returns Promise<void>
  */
   private async writeIntentFile(): Promise<void> {
@@ -202,20 +203,20 @@ export default class FileWriter extends EventEmitter {
    * @returns Promise<void>
    */
   private async writeStoriesFile(): Promise<void> {
-    for (const idOfMessageConnectedByIntent of this.intentMap.keys()) {
-      // console.log(this.getIntentLineageForMessage(idOfMessageConnectedByIntent));
-    }
     const outputFilePath = join(this.outputDir, "data", "stories.md");
-    const storyData = {
-      intents: this.projectData.intents,
-      intentMap: this.intentMap,
-      messageCollector: this.messageCollector,
-      messages: this.projectData.board.board.messages
-    };
-    await writeFile(
-      outputFilePath,
-      genStoriesFromIntents({ projectName: this.projectData.project.name, storyData })
-    )
+    const OPENING_LINE = `<!-- generated ${new Date().toLocaleString()} -->`;
+    const data = Array.from(this.intentMap.keys())
+      .reduce((acc, idOfMessageConnectedByIntent: string) => {
+        const lineage: string[] = [
+          ...this.getIntentLineageForMessage(idOfMessageConnectedByIntent),
+          ...this.intentMap.get(idOfMessageConnectedByIntent).map((intentId: string) => (
+            this.projectData.intents.find((intent: Assets.Intent) => intent.id === intentId).name
+          ))
+        ];
+        const path = lineage.map((intentName: string) => `* ${intentName}`);
+        return acc + EOL + `## ${uuid()}` + EOL + path.join(EOL) + EOL;
+      }, OPENING_LINE);
+    await writeFile(outputFilePath, data);
   }
   /**
    * Writes markdown files within outputDir

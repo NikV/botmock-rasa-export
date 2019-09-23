@@ -168,7 +168,7 @@ export default class FileWriter extends EventEmitter {
    * @param messageId message id of a message connected by an intent
    * @returns string[]
    */
-  getIntentLineageForMessage(messageId: string): string[] {
+  private getIntentLineageForMessage(messageId: string): string[] {
     const { getMessage, intentMap, projectData } = this;
     const context: string[] = [];
     const seenIds: string[] = [];
@@ -194,7 +194,11 @@ export default class FileWriter extends EventEmitter {
     return context;
   }
   /**
-   * Write stories markdown file
+   * Write stories markdown file. Each story is a possible path of intents that
+   * leads to a message that is directly connected by an intent. In Rasa's language
+   * these are "paths"; each intent in a path is the lineage of intents leading to the
+   * particular message that follows from an intent; each action is a content block in
+   * the relevant group between the intents.
    * @returns Promise<void>
    */
   private async writeStoriesFile(): Promise<void> {

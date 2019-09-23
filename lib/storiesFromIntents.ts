@@ -19,10 +19,10 @@ export function convertIntentStructureToStories(intentObj: IntentObj): { [intent
     messages.find(message => message.message_id === id)
   );
   return Array.from(intentMap).reduce(
-    (acc, [messageId, intentIds]) => ({
+    (acc, [idOfMessageConnectedByIntent, connectedIntentIds]) => ({
       ...acc,
-      ...intentIds.reduce((accu, id: string) => {
-        const message: Assets.Message = getMessage(messageId);
+      ...connectedIntentIds.reduce((accu, id: string) => {
+        const message: Assets.Message = getMessage(idOfMessageConnectedByIntent);
         const intent: Assets.Intent = intents.find(intent => intent.id === id);
         if (typeof intent !== "undefined") {
           return {
@@ -30,9 +30,7 @@ export function convertIntentStructureToStories(intentObj: IntentObj): { [intent
             [intent.name]: [
               message,
               ...messageCollector(message.next_message_ids).map(getMessage)
-            ]
-              .map((message: Assets.Message) => message.payload.nodeName.toLowerCase())
-              .map((str: string) => str.replace(/\s/g, "_"))
+            ].map((message: Assets.Message) => message.message_id)
           };
         } else {
           return accu;

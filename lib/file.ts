@@ -84,10 +84,9 @@ export default class FileWriter extends EventEmitter {
       (acc, [idOfMessageConnectedByIntent]) => {
         const message = this.getMessage(idOfMessageConnectedByIntent);
         const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage);
-        const templateName = message.payload.nodeName.toLowerCase().replace(/\s/g, "_");
         return {
           ...acc,
-          [`utter_${templateName}`]: [message, ...collectedMessages].reduce((accu, message: Message) => {
+          [`utter_${message.message_id}`]: [message, ...collectedMessages].reduce((accu, message: Message) => {
             let type: string;
             let payload: any;
             switch (message.message_type) {

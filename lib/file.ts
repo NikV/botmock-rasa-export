@@ -61,7 +61,7 @@ export default class FileWriter extends EventEmitter {
    * Gets array containing the unique action names in the project
    * @returns string[]
    */
-  private getActionsInProject(): any {
+  private getUniqueActionNames(): string[] {
     return Object.keys(
       Object.values(this.stories)
         .reduce((acc, values: string[]) => {
@@ -76,13 +76,13 @@ export default class FileWriter extends EventEmitter {
       .map(action => `utter_${action}`);
   }
   /**
-   * Creates yml-consumable object from intent map
+   * Creates templates
    * @returns Templates
    */
   private createTemplates(): Templates {
     return Array.from(this.intentMap).reduce(
-      (acc, [messageId]) => {
-        const message = this.getMessage(messageId);
+      (acc, [idOfMessageConnectedByIntent]) => {
+        const message = this.getMessage(idOfMessageConnectedByIntent);
         const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage);
         const templateName = message.payload.nodeName.toLowerCase().replace(/\s/g, "_");
         return {
@@ -92,9 +92,13 @@ export default class FileWriter extends EventEmitter {
             let payload: any;
             switch (message.message_type) {
               case "jump":
-                const { label } = JSON.parse(message.payload.selectedResult)
+                const { value, label, jumpType } = JSON.parse(message.payload.selectedResult)
+                if (jumpType === "node") {
+                  payload = `jumped to block ${label}`;
+                } else {
+                  payload = `jumped to project ${label}`;
+                }
                 type = "text";
-                payload = `jumped to ${label}`;
                 break;
               case "image":
                 type = "image";
@@ -112,9 +116,9 @@ export default class FileWriter extends EventEmitter {
               // case "list":
               // case "api":
               default:
-                const value = message.payload[message.message_type];
+                const payloadValue = message.payload[message.message_type];
                 type = "text";
-                payload = typeof value !== "string" ? JSON.stringify(value) : value;
+                payload = typeof payloadValue !== "string" ? JSON.stringify(payloadValue) : payloadValue;
             }
             let value = payload ||
                 `${message.payload[message.message_type]
@@ -135,21 +139,23 @@ export default class FileWriter extends EventEmitter {
     );
   }
   /**
-   * Writes yml file within outputDir
+   * Writes yml domain file
    * @returns Promise<void>
    */
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
-    const actions = this.getActionsInProject();
-    const templates = this.createTemplates();
+    const firstLine = `# generated ${this.init}`;
+    // console.log(this.createTemplates());
+    // console.log(this.stories);
+    const data = toYAML({
+      intents: this.projectData.intents.map(intent => intent.name),
+      entities: this.projectData.variables.map(entity => entity.name.replace(/\s/, "")),
+      actions: this.getUniqueActionNames(),
+      templates: this.createTemplates()
+    });
     return await writeFile(
       outputFilePath,
-      `# generated ${this.init}${EOL}${toYAML({
-        intents: this.projectData.intents.map(intent => intent.name),
-        entities: this.projectData.entities.map(entity => entity.name),
-        actions,
-        templates
-      })}`
+      `${firstLine}${EOL}${data}`
     );
   }
 /**

@@ -39,7 +39,7 @@ export interface Project {
   };
   intents: Intent[];
   entities: Entity[];
-  variables: any[];
+  variables: Variable[];
 }
 
 export type Variable = {

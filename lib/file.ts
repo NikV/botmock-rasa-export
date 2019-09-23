@@ -11,7 +11,8 @@ import { convertIntentStructureToStories } from "./storiesFromIntents";
 
 export type IntentMap = Map<string, string[]>;
 
-type Templates = { [key: string]: any };
+type Templates = { [actionName: string]: { [type: string]: any } };
+
 type Message = Partial<{
   message_id: string;
   message_type: string;
@@ -139,7 +140,7 @@ export default class FileWriter extends EventEmitter {
    */
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
-    const { uniqueActionNames: actions } = this.getActionsInProject();
+    const actions = this.getActionsInProject();
     const templates = this.createTemplates();
     return await writeFile(
       outputFilePath,

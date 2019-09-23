@@ -36,6 +36,7 @@ export default class FileWriter extends EventEmitter {
   private messageCollector: Function;
   private getMessage: Function;
   private init: string;
+  private stories: {};
   /**
    * Creates instance of FileWriter
    * @param config configuration object containing an outputDir to hold generated
@@ -51,20 +52,20 @@ export default class FileWriter extends EventEmitter {
     );
     this.intentMap = utils.createIntentMap(this.projectData.board.board.messages, this.projectData.intents);
     this.messageCollector = utils.createMessageCollector(this.intentMap, this.getMessage);
-  }
-  /**
-   * Gets the unique action names for the template
-   * @returns string[]
-   */
-  private getUniqueActionNames(): string[] {
-    const storyData = {
+    this.stories = convertIntentStructureToStories({
       intents: this.projectData.intents,
       intentMap: this.intentMap,
       messageCollector: this.messageCollector,
       messages: this.projectData.board.board.messages
-    };
+    });
+  }
+  /**
+   * Gets array containing the unique action names in the project
+   * @returns string[]
+   */
+  private getActionsInProject(): any {
     return Object.keys(
-      Object.values(convertIntentStructureToStories(storyData))
+      Object.values(this.stories)
         .reduce((acc, values: string[]) => {
           return {
             ...acc,
@@ -141,13 +142,15 @@ export default class FileWriter extends EventEmitter {
    */
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
+    const { uniqueActionNames: actions } = this.getActionsInProject();
+    const templates = this.createTemplates();
     return await writeFile(
       outputFilePath,
       `# generated ${this.init}${EOL}${toYAML({
         intents: this.projectData.intents.map(intent => intent.name),
         entities: this.projectData.entities.map(entity => entity.name),
-        actions: this.getUniqueActionNames(),
-        templates: this.createTemplates()
+        actions,
+        templates
       })}`
     );
   }
@@ -213,8 +216,14 @@ export default class FileWriter extends EventEmitter {
             this.projectData.intents.find((intent: Assets.Intent) => intent.id === intentId).name
           ))
         ];
-        const path = lineage.map((intentName: string) => `* ${intentName}`);
-        return acc + EOL + `## ${uuid()}` + EOL + path.join(EOL) + EOL;
+        const path: string[] = lineage.map((intentName: string) => {
+          const actionsUnderIntent = this.stories[intentName].map((actionName: string) => (
+            `  - utter_${actionName}`
+          )).join(EOL);
+          return `* ${intentName}${EOL}${actionsUnderIntent}`;
+        });
+        const storyName = `## ${uuid()}`;
+        return acc + EOL + storyName + EOL + path.join(EOL) + EOL;
       }, OPENING_LINE);
     await writeFile(outputFilePath, data);
   }

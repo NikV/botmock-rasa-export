@@ -15,6 +15,7 @@ export type IntentMap = Map<string, string[]>;
 
 type Templates = { [key: string]: any };
 type Message = Partial<{
+  message_id: string;
   message_type: string;
   payload: {
     selectedResult: any;
@@ -45,7 +46,7 @@ export default class FileWriter extends EventEmitter {
     this.outputDir = config.outputDir;
     this.projectData = config.projectData;
     this.getMessage = (id: string): Message => (
-      this.projectData.board.board.messages.find(message => message.message_id === id)
+      this.projectData.board.board.messages.find((message: Message) => message.message_id === id)
     );
     this.intentMap = utils.createIntentMap(this.projectData.board.board.messages, this.projectData.intents);
     this.messageCollector = utils.createMessageCollector(this.intentMap, this.getMessage);
@@ -99,8 +100,6 @@ export default class FileWriter extends EventEmitter {
                 type = "image";
                 payload = message.payload.image_url;
                 break;
-              // case "generic":
-              // case "list":
               case "button":
               case "quick_replies":
                 type = "buttons";
@@ -109,6 +108,11 @@ export default class FileWriter extends EventEmitter {
                   payload
                 }));
                 break;
+              // case "generic":
+              // case "list":
+              default:
+                type = "text";
+                payload = message.payload[message.message_type];
             }
             let value = payload ||
                 `${message.payload[message.message_type]

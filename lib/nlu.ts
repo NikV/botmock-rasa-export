@@ -55,7 +55,8 @@ export function genIntents({ intents, entities }: Config): string {
 ${examples.map(example => generateExample(example, entities)).join(EOL)}`;
   };
 
-  const generateEntity = ({ id, name, data: values, updated_at: { date: timestamp } }): string => {
+  const generateEntity = (entity: any): string => {
+    const { id, name, data: values, updated_at: { date: timestamp } } = entity;
     const synonym_variance: number = values.reduce((count, { synonyms }) => count + synonyms.length, 0);
     // if there are less synonyms than values, create a lookup table
     if (synonym_variance < values.length) {
@@ -69,13 +70,12 @@ ${lookupArr.join(EOL)}
 `;
     } else {
       // else, there are enough synonyms
-      const synonymsArray = values.map(
-        ({ value, synonyms }) =>
-          `
+      const synonymsArray = values.map(({ value, synonyms }) => (
+        `
 <!-- ${timestamp} | entity : ${name} | ${id} -->
 ## synonym:${value.replace(/ |-/g, "_").toLowerCase()}
 - ${synonyms.length ? synonyms.join(`${EOL}-`) : "<!-- need to generate value synonyms here -->"}`
-      );
+      ));
       return synonymsArray.join(EOL);
     }
   };

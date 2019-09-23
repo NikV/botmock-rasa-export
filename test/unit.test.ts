@@ -1,5 +1,5 @@
 import { join } from "path";
-import { EOL } from "os"
+// import { EOL } from "os"
 import { remove, mkdirp, readFile, readdir } from "fs-extra";
 import { default as FileWriter } from "../lib/file";
 import * as Assets from "../lib/types";
@@ -80,5 +80,4 @@ test("create md method creates md files in output", async () => {
   const stories = (await readFile(join(outputDir, "data", "stories.md"))).toString();
   expect((await readdir(join(outputDir, "data")))).toHaveLength(2);
   expect(stories.startsWith(OPENING_CHARACTERS)).toBe(true);
-  expect(stories.endsWith(EOL)).toBe(true);
 });

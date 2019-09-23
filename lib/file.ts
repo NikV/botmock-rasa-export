@@ -7,10 +7,7 @@ import { join } from "path";
 import { EOL } from "os";
 import * as Assets from "./types";
 import { genIntents } from "./nlu";
-import {
-  // genStoriesFromIntents,
-  convertIntentStructureToStories
-} from "./storiesFromIntents";
+import { convertIntentStructureToStories } from "./storiesFromIntents";
 
 export type IntentMap = Map<string, string[]>;
 
@@ -36,7 +33,7 @@ export default class FileWriter extends EventEmitter {
   private messageCollector: Function;
   private getMessage: Function;
   private init: string;
-  private stories: {};
+  private stories: { [intentName: string]: string[] };
   /**
    * Creates instance of FileWriter
    * @param config configuration object containing an outputDir to hold generated

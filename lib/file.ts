@@ -9,6 +9,17 @@ import * as Assets from "./types";
 import { genIntents } from "./nlu";
 import { convertIntentStructureToStories } from "./storiesFromIntents";
 
+// export class YML {
+//   constructor(config: Config) {}
+//   /**
+//    * Writes
+//    * @returns string
+//    */
+//   public stringify(object: Object): string {
+//     return ""
+//   }
+// }
+
 export type IntentMap = Map<string, string[]>;
 
 type Templates = { [actionName: string]: { [type: string]: any } };
@@ -71,7 +82,7 @@ export default class FileWriter extends EventEmitter {
    * @returns Templates
    */
   private createTemplates(): Templates {
-    const templateList = this.getUniqueActionNames()
+    return this.getUniqueActionNames()
       .reduce((acc, actionName: string) => {
         const PREFIX_LENGTH = 6;
         const message = this.getMessage(actionName.slice(PREFIX_LENGTH));
@@ -79,8 +90,8 @@ export default class FileWriter extends EventEmitter {
         return {
           ...acc,
           [actionName]: [message, ...collectedMessages].reduce((accu, message: Assets.Message) => {
-            let type: string;
-            let payload: any;
+            let type: "text" | "custom" | "buttons" | "image";
+            let payload: string | {};
             switch (message.message_type) {
               case "jump":
                 const { value, label, jumpType } = JSON.parse(message.payload.selectedResult)
@@ -97,6 +108,7 @@ export default class FileWriter extends EventEmitter {
                 break;
               case "button":
               case "quick_replies":
+                // console.log(message.payload);
                 type = "buttons";
                 payload = (message.payload[message.message_type] || []).map(({ title, payload }) => ({
                   title,
@@ -111,22 +123,17 @@ export default class FileWriter extends EventEmitter {
                 type = "text";
                 payload = typeof payloadValue !== "string" ? JSON.stringify(payloadValue) : payloadValue;
             }
-            let value = payload ||
-              `${message.payload[message.message_type]
-                ? message.payload[message.message_type].replace(/\n/g, EOL)
-                : message.payload[message.message_type]
-              }`;
+            let value: any = payload;
             if (typeof value === "string") {
               value = utils.symmetricWrap(value, { l: "{", r: "}" });
             }
             return {
               ...accu,
-              [type || message.message_type]: value
+              [type]: value
             };
-          })
+          }, {})
         }
       }, {});
-      return templateList;
   }
   /**
    * Writes yml domain file

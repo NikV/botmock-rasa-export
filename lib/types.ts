@@ -5,6 +5,8 @@ export type Message = Partial<{
   message_type: string;
   next_message_ids: any[];
   payload: {
+    quick_replies?: any[];
+    buttons?: any[];
     selectedResult: any;
     image_url: string;
   };

@@ -86,7 +86,7 @@ export default class FileWriter extends EventEmitter {
       .reduce((acc, actionName: string) => {
         const PREFIX_LENGTH = 6;
         const message = this.getMessage(actionName.slice(PREFIX_LENGTH));
-        const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage)
+        const collectedMessages = this.messageCollector(message.next_message_ids).map(this.getMessage);
         return {
           ...acc,
           [actionName]: [message, ...collectedMessages].reduce((accu, message: Assets.Message) => {
@@ -108,12 +108,12 @@ export default class FileWriter extends EventEmitter {
                 break;
               case "button":
               case "quick_replies":
-                // console.log(message.payload);
                 type = "buttons";
-                payload = (message.payload[message.message_type] || []).map(({ title, payload }) => ({
-                  title,
-                  payload
-                }));
+                payload = (message.payload.quick_replies || message.payload.buttons)
+                  .map(({ title, payload }) => ({
+                    title,
+                    payload
+                  }));
                 break;
               // case "generic":
               // case "list":
@@ -129,7 +129,7 @@ export default class FileWriter extends EventEmitter {
             }
             return {
               ...accu,
-              [type]: value
+              [type.concat(message.message_id)]: value
             };
           }, {})
         }
@@ -142,6 +142,7 @@ export default class FileWriter extends EventEmitter {
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
     const firstLine = `# generated ${this.init}`;
+    // console.log(this.createTemplates())
     const data = toYAML({
       intents: this.projectData.intents.map((intent: Assets.Intent) => intent.name),
       entities: this.projectData.variables.map((entity: Assets.Variable) => entity.name.replace(/\s/, "")),

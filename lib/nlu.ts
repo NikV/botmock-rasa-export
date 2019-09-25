@@ -12,7 +12,7 @@ interface Config {
  * @returns string
  */
 export function genIntents({ intents, entities }: Config): string {
-  const generateExample = ({ text, variables }, entityList): string => {
+  const generateExample = ({ text, variables }: Assets.Utterance, entityList: Assets.Entity[]): string => {
     let str: string = text;
     if (variables) {
       variables.forEach(({ name, entity: variableId }: Partial<Assets.Variable>) => {
@@ -24,12 +24,11 @@ export function genIntents({ intents, entities }: Config): string {
           .toLowerCase();
         str = text.replace(search, `[${formattedName}](${formattedName})`);
         search = new RegExp(`\\[(${formattedName})\\]`, "gi");
-        // TODO: interface with chatito or chatette
         const matchingEntity = entityList.find(entity => entity.id === variableId);
         if (typeof matchingEntity !== "undefined") {
           // find matching entity, get array of data values it can take on
           str = matchingEntity.data.map(({ value: entityVal, synonyms }) => {
-              //create a copy of the current example for each entity value
+              // create a copy of the current example for each entity value
               const singleExample = str.replace(search, `[${entityVal.trim()}]`);
               if (synonyms.length > 0) {
                 // create examples for each synonym (required by rasa for detection)

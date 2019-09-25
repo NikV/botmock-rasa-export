@@ -7,18 +7,7 @@ import { join } from "path";
 import { EOL } from "os";
 import * as Assets from "./types";
 import { genIntents } from "./nlu";
-import { convertIntentStructureToStories } from "./storiesFromIntents";
-
-// export class YML {
-//   constructor(config: Config) {}
-//   /**
-//    * Writes
-//    * @returns string
-//    */
-//   public stringify(object: Object): string {
-//     return ""
-//   }
-// }
+import { convertIntentStructureToStories } from "./intent";
 
 export type IntentMap = Map<string, string[]>;
 
@@ -82,7 +71,7 @@ export default class FileWriter extends EventEmitter {
    * @returns Templates
    */
   private createTemplates(): Templates {
-    return this.getUniqueActionNames()
+    const actionNameContent = this.getUniqueActionNames()
       .reduce((acc, actionName: string) => {
         const PREFIX_LENGTH = 6;
         const message = this.getMessage(actionName.slice(PREFIX_LENGTH));
@@ -90,9 +79,9 @@ export default class FileWriter extends EventEmitter {
         return {
           ...acc,
           [actionName]: [message, ...collectedMessages].reduce((accu, message: Assets.Message) => {
-            let type: "text" | "custom" | "buttons" | "image";
             let payload: string | {};
             switch (message.message_type) {
+              // case "api":
               case "jump":
                 const { value, label, jumpType } = JSON.parse(message.payload.selectedResult)
                 if (jumpType === "node") {
@@ -100,40 +89,31 @@ export default class FileWriter extends EventEmitter {
                 } else {
                   payload = `jumped to project ${label}`;
                 }
-                type = "text";
                 break;
               case "image":
-                type = "image";
                 payload = message.payload.image_url;
                 break;
               case "button":
               case "quick_replies":
-                type = "buttons";
                 payload = (message.payload.quick_replies || message.payload.buttons)
-                  .map(({ title, payload }) => ({
-                    title,
-                    payload
-                  }));
+                  .map(({ title, payload }) => ({ buttons: { title, payload } }));
                 break;
-              // case "generic":
-              // case "list":
-              // case "api":
               default:
                 const payloadValue = message.payload[message.message_type];
-                type = "text";
                 payload = typeof payloadValue !== "string" ? JSON.stringify(payloadValue) : payloadValue;
             }
-            let value: any = payload;
-            if (typeof value === "string") {
-              value = utils.symmetricWrap(value, { l: "{", r: "}" });
-            }
-            return {
+            return [
               ...accu,
-              [type.concat(message.message_id)]: value
-            };
-          }, {})
+              (typeof payload === "string"
+                ? utils.symmetricWrap(payload, { l: "{", r: "}" })
+                : JSON.stringify(payload, null, 2)
+              )
+            ];
+          }, [])
         }
       }, {});
+    console.log(actionNameContent)
+    return actionNameContent;
   }
   /**
    * Writes yml domain file
@@ -142,7 +122,6 @@ export default class FileWriter extends EventEmitter {
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
     const firstLine = `# generated ${this.init}`;
-    // console.log(this.createTemplates())
     const data = toYAML({
       intents: this.projectData.intents.map((intent: Assets.Intent) => intent.name),
       entities: this.projectData.variables.map((entity: Assets.Variable) => entity.name.replace(/\s/, "")),
@@ -220,7 +199,7 @@ export default class FileWriter extends EventEmitter {
           const actionsUnderIntent = this.stories[intentName].map((actionName: string) => (
             `  - utter_${actionName}`
           )).join(EOL);
-          return `* ${intentName}${EOL}${actionsUnderIntent}`;
+          return `* ${intentName.replace(/\s/g, "").toLowerCase()}${EOL}${actionsUnderIntent}`;
         });
         const storyName = `## ${uuid()}`;
         return acc + EOL + storyName + EOL + path.join(EOL) + EOL;

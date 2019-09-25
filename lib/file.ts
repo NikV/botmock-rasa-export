@@ -24,7 +24,6 @@ export default class FileWriter extends EventEmitter {
   private intentMap: IntentMap;
   private messageCollector: Function;
   private getMessage: Function;
-  private init: string;
   private stories: { [intentName: string]: string[] };
   /**
    * Creates instance of FileWriter
@@ -33,7 +32,6 @@ export default class FileWriter extends EventEmitter {
    */
   constructor(config: Config) {
     super();
-    this.init = new Date().toLocaleString();
     this.outputDir = config.outputDir;
     this.projectData = config.projectData;
     this.getMessage = (id: string): Assets.Message => (
@@ -112,7 +110,7 @@ export default class FileWriter extends EventEmitter {
           }, [])
         }
       }, {});
-    console.log(actionNameContent)
+    // console.log(actionNameContent);
     return actionNameContent;
   }
   /**
@@ -121,7 +119,7 @@ export default class FileWriter extends EventEmitter {
    */
   public async createYml(): Promise<void> {
     const outputFilePath = join(this.outputDir, "domain.yml");
-    const firstLine = `# generated ${this.init}`;
+    const firstLine = `# generated ${new Date().toLocaleString()}`;
     const data = toYAML({
       intents: this.projectData.intents.map((intent: Assets.Intent) => intent.name),
       entities: this.projectData.variables.map((entity: Assets.Variable) => entity.name.replace(/\s/, "")),
@@ -159,7 +157,7 @@ export default class FileWriter extends EventEmitter {
       const { previous_message_ids: prevIds } = getMessage(messageId);
       let messageFollowingIntent: any;
       if ((messageFollowingIntent = prevIds.find(prev => intentMap.get(prev.message_id)))) {
-        const { name: nameOfIntent } = projectData.intents.find(intent => (
+        const { name: nameOfIntent } = projectData.intents.find((intent: Assets.Intent) => (
           intent.id === intentMap.get(messageFollowingIntent.message_id)[0]
         ));
         if (typeof nameOfIntent !== "undefined") {

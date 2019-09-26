@@ -1,15 +1,13 @@
 {
   "name": "botmock-rasa-export",
-  "version": "1.0.0",
-  "description": "Build Rasa bots from Botmock projects",
-  "main": "index.js",
-  "module": "index.js",
+  "version": "1.1.0",
+  "description": "build rasa bots from botmock projects",
   "scripts": {
     "test": "jest",
-    "start": "node --no-warnings -r esm index.js"
+    "start": "ts-node index.ts"
   },
-  "esm": {
-    "await": true
+  "engines": {
+    "node": ">=6"
   },
   "keywords": [
     "botmock",
@@ -17,8 +15,19 @@
     "nodejs"
   ],
   "prettier": {
-    "singleQuote": true,
+    "trailingComma": "es5",
+    "tabWidth": 2,
     "printWidth": 80
+  },
+  "jest": {
+    "collectCoverage": true,
+    "testEnvironment": "node",
+    "preset": "ts-jest",
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.json"
+      }
+    }
   },
   "repository": {
     "type": "git",
@@ -26,14 +35,24 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@botmock-api/utils": "0.7.1",
-    "botmock": "1.2.0",
-    "dotenv": "7.0.0",
-    "esm": "3.2.22",
-    "uuid": "3.3.2",
-    "yaml": "1.5.0"
+    "@botmock-api/utils": "2.3.1",
+    "@sentry/integrations": "5.6.1",
+    "@sentry/node": "5.6.2",
+    "chalk": "2.4.2",
+    "dotenv": "8.1.0",
+    "fs-extra": "8.1.0",
+    "node-fetch": "2.6.0",
+    "uuid": "3.3.3",
+    "yaml": "1.6.0"
   },
   "devDependencies": {
-    "jest": "24.7.1"
+    "@types/fs-extra": "8.0.0",
+    "@types/jest": "24.0.18",
+    "@types/node": "12.7.7",
+    "@types/node-fetch": "2.5.2",
+    "jest": "24.9.0",
+    "ts-jest": "24.1.0",
+    "ts-node": "8.4.1",
+    "typescript": "3.6.3"
   }
 }

@@ -1,41 +1,38 @@
 # Botmock Rasa Export
 
-> Build [Rasa](https://rasa.com) bots from [Botmock](https://botmock.com) projects
+> Creates [Rasa](https://rasa.com) domain, nlu, and stories from a [Botmock](https://botmock.com) project.
 
 This script generates Rasa [training data](https://rasa.com/docs/rasa/nlu/training-data-format/#training-data-format), [stories](https://rasa.com/docs/rasa/core/stories/#stories), and [domain](https://rasa.com/docs/rasa/core/domains/) from a given Botmock project.
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/en/) installation
+- [Node JS](https://nodejs.org/en/) version 12.x
+
+```bash
+#determine nodejs version
+node --version
+```
 
 - [Rasa](https://rasa.com/docs/rasa/user-guide/installation/#quick-installation) installation
 
 ## Guide
 
-### installation
-
-- clone this repo, cd into it, and create `.env`:
-
-```shell
-git clone git@github.com:Botmock/botmock-rasa-export.git
-
-cd botmock-rasa-export
-
-touch .env
-```
-
+- run `git clone git@github.com:Botmock/botmock-rasa-export.git`
+- run `cd botmock-rasa-export`
+- create `.env`
 - edit `.env` to contain the following (with your own values filled in):
+```bash
+BOTMOCK_TEAM_ID=your-team-id
+BOTMOCK_PROJECT_ID=your-project-id
+BOTMOCK_BOARD_ID=your-board-id
+BOTMOCK_TOKEN=your-token
 
-```shell
-BOTMOCK_TEAM_ID=@TEAM-ID
-BOTMOCK_PROJECT_ID=@PROJECT-ID
-BOTMOCK_BOARD_ID=@BOARD-ID
-BOTMOCK_TOKEN=@TOKEN
 ```
-
 - run `npm install`
-
-- run `npm start` to produce `/output`, containing your project's training data, stories, and domain files.
+- run `npm start`
+- move `domain.yml` and `data/nlu.md` and `data/stories.md` to your Rasa project directory
+- run `rasa train`
+- run `rasa shell`
 
 ## Want to help?
 

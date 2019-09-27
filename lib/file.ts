@@ -1,3 +1,4 @@
+import { wrapEntitiesWithChar } from "@botmock-api/text";
 import * as utils from "@botmock-api/utils";
 import uuid from "uuid/v4";
 import { writeFile, mkdirp } from "fs-extra";
@@ -103,7 +104,7 @@ export default class FileWriter extends EventEmitter {
             return [
               ...accu,
               (typeof payload === "string"
-                ? utils.symmetricWrap(payload, { l: "{", r: "}" })
+                ? wrapEntitiesWithChar(payload, "{")
                 : JSON.stringify(payload, null, 2)
               )
             ];

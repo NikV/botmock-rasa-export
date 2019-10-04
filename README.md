@@ -17,6 +17,27 @@ node --version
 
 ## Guide
 
+To start, you will have to clone the repository, go into the directory,  and install the required dependencies for this script.
+
+git clone git@github.com:Botmock/botmock-botframework-export.git
+
+cd botmock-botframework-export
+
+npm i
+The next step is to go into folder and create a file called /.env , which will host your Botmock-based information. 
+
+This file will contain some important information that will help the script extract the correct project from our API and run the export on it. Open the the .env file in your editor of choice.
+
+You will need to setup the following variables in the file:
+
+BOTMOCK_TOKEN="@YOUR-BOTMOCK-TOKEN"
+BOTMOCK_TEAM_ID="@YOUR-BOTMOCK-TEAM-ID"
+BOTMOCK_BOARD_ID="@YOUR-BOTMOCK-BOARD-ID"
+BOTMOCK_PROJECT_ID="@YOUR-BOTMOCK-PROJECT-ID"
+
+OUTPUT_DIR=optional/directory/for/output
+To get your Botmock team ID you will need to visit http://app.botmock.com and login. Once logged in click on the "Teams" dropdown in the top bar and click on "Team Profile". 
+
 - run `git clone git@github.com:Botmock/botmock-rasa-export.git`
 - run `cd botmock-rasa-export`
 - create `.env`
